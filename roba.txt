@@ -1,11 +1,12 @@
+
+
 import streamlit as st
 import pandas as pd
 import folium
 from streamlit_folium import folium_static
 from shapely.geometry import Point, Polygon
 import streamlit.components.v1 as components
-import plotly.express as px
-import plotly.graph_objects as go
+from streamlit_elements import elements, mui, html, dashboard
 
 # Load data
 points_df = pd.read_csv('data.csv')
@@ -58,16 +59,10 @@ if earthquake_risk:
 if flood_risk:
     flood_polygon_coords = add_polygon(flood_df, 'blue')
 
-# Track risk data for each point of interest
-risk_data = []
-
 for _, row in points_df.iterrows():
     max_risk = 0
     risk_color = None
     popup_text = f"Name: {row['name']}<br>"
-
-    earthquake_risk_value = 0
-    flood_risk_value = 0
 
     if earthquake_polygon_coords and is_point_in_polygon((row['latitude'], row['longitude']), earthquake_polygon_coords):
         earthquake_risk_value = row['earthquake_risk']
@@ -95,13 +90,6 @@ for _, row in points_df.iterrows():
             popup=popup_text
         ).add_to(m)
 
-    risk_data.append({
-        'name': row['name'],
-        'earthquake_risk': earthquake_risk_value,
-        'flood_risk': flood_risk_value,
-        'total_risk': earthquake_risk_value + flood_risk_value
-    })
-
 # Save current map state using JavaScript
 map_state_js = """
 <script>
@@ -115,45 +103,6 @@ map_state_js = """
 </script>
 """
 
-# Generate the Folium map as an HTML iframe
-map_html = m._repr_html_()
-map_html_with_js = f"""
-    {map_html}
-    {map_state_js}
-"""
-
 # Display the map and JavaScript
-components.html(map_html_with_js, height=600, width=800)
-
-# Display data as a table
-st.subheader("Points of Interest Data")
-st.dataframe(points_df)
-
-# Create a horizontal bar graph
-risk_df = pd.DataFrame(risk_data)
-fig = go.Figure()
-
-fig.add_trace(go.Bar(
-    y=risk_df['name'],
-    x=risk_df['earthquake_risk'],
-    name='Earthquake Risk',
-    orientation='h',
-    marker=dict(color='red')
-))
-
-fig.add_trace(go.Bar(
-    y=risk_df['name'],
-    x=risk_df['flood_risk'],
-    name='Flood Risk',
-    orientation='h',
-    marker=dict(color='blue')
-))
-
-fig.update_layout(
-    barmode='stack',
-    title='Total Risk by Point of Interest',
-    xaxis_title='Total Risk',
-    yaxis_title='Point of Interest'
-)
-
-st.plotly_chart(fig)
+folium_static(m)
+components.html(map_state_js)
