@@ -1,6 +1,6 @@
-id,name,latitude,longitude,earthquake_risk,flood_risk
-1,Basilica of San Vitale,44.4195,12.196,6,2
-2,Mausoleum of Galla Placidia,44.4204,12.1964,4,3
-3,Neonian Baptistery,44.4185,12.1974,1,7
-4,Basilica of Sant'Apollinare Nuovo,44.4189,12.1995,3,1
-5,Basilica of Sant'Apollinare in Classe,44.3738,12.2546,7,5
+id,name,alt_name,date,description,sources,notes,latitude,longitude,earthquake_risk,flood_risk
+1,Basilica of San Vitale,Basilica di San Vitale,548,"A late antique church in Ravenna, known for its stunning mosaics.","https://en.wikipedia.org/wiki/Basilica_of_San_Vitale","Important site for studying Byzantine art and architecture.",44.4195,12.196,6,2
+2,Mausoleum of Galla Placidia,Mausoleo di Galla Placidia,430,"An ancient Roman building featuring early Christian mosaics.","https://en.wikipedia.org/wiki/Mausoleum_of_Galla_Placidia","Notable for its rich mosaic decoration.",44.4204,12.1964,4,3
+3,Neonian Baptistery,Battistero Neoniano,5th century,"One of the oldest monuments in Ravenna, celebrated for its mosaics.","https://en.wikipedia.org/wiki/Neonian_Baptistery","Also known as the Orthodox Baptistery.",44.4185,12.1974,1,7
+4,Basilica of Sant'Apollinare Nuovo,Basilica di Sant'Apollinare Nuovo,6th century,"A basilica church in Ravenna, originally built by King Theodoric the Great.","https://en.wikipedia.org/wiki/Basilica_of_Sant%27Apollinare_Nuovo","Renowned for its stunning mosaics depicting biblical scenes.",44.4189,12.1995,3,1
+5,Basilica of Sant'Apollinare in Classe,Basilica di Sant'Apollinare in Classe,549,"An ancient basilica in the suburb of Classe, known for its impressive mosaics.","https://en.wikipedia.org/wiki/Basilica_of_Sant%27Apollinare_in_Classe","One of the most important examples of early Christian basilica architecture.",44.3738,12.2546,7,5
