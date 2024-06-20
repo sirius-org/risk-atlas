@@ -7,6 +7,9 @@ import streamlit.components.v1 as components
 import plotly.express as px
 import plotly.graph_objects as go
 
+# Set the page layout to wide
+st.set_page_config(layout="wide")
+
 # Load data
 points_df = pd.read_csv('data.csv')
 earthquake_df = pd.read_csv('earthquake.csv')
@@ -121,39 +124,48 @@ map_html_with_js = f"""
     {map_html}
     {map_state_js}
 """
+# Display the map and JavaScript in a column
+map_col, data_col = st.columns([1, 1])
+with map_col:
+    components.html(map_html_with_js, height=600)
 
-# Display the map and JavaScript
-components.html(map_html_with_js, height=600, width=800)
+with data_col:
+    # Create a horizontal bar graph
+    risk_df = pd.DataFrame(risk_data)
+    fig = go.Figure()
 
-# Display data as a table
+    fig.add_trace(go.Bar(
+        y=risk_df['name'],
+        x=risk_df['earthquake_risk'],
+        name='Earthquake Risk',
+        orientation='h',
+        marker=dict(color='red')
+    ))
+
+    fig.add_trace(go.Bar(
+        y=risk_df['name'],
+        x=risk_df['flood_risk'],
+        name='Flood Risk',
+        orientation='h',
+        marker=dict(color='blue')
+    ))
+
+    fig.update_layout(
+        barmode='stack',
+        title='Total Risk by Point of Interest',
+        xaxis_title='Total Risk',
+        yaxis_title='Point of Interest',
+        height=600,  # Adjust the height if needed
+        width=800    # Adjust the width if needed
+    )
+
+    st.plotly_chart(fig)
+
 st.subheader("Points of Interest Data")
 st.dataframe(points_df)
 
-# Create a horizontal bar graph
-risk_df = pd.DataFrame(risk_data)
-fig = go.Figure()
+st.subheader("Earthquake Data")
+st.dataframe(earthquake_df)
 
-fig.add_trace(go.Bar(
-    y=risk_df['name'],
-    x=risk_df['earthquake_risk'],
-    name='Earthquake Risk',
-    orientation='h',
-    marker=dict(color='red')
-))
-
-fig.add_trace(go.Bar(
-    y=risk_df['name'],
-    x=risk_df['flood_risk'],
-    name='Flood Risk',
-    orientation='h',
-    marker=dict(color='blue')
-))
-
-fig.update_layout(
-    barmode='stack',
-    title='Total Risk by Point of Interest',
-    xaxis_title='Total Risk',
-    yaxis_title='Point of Interest'
-)
-
-st.plotly_chart(fig)
+st.subheader("Flood Data")
+st.dataframe(flood_df)
