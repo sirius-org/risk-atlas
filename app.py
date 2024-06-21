@@ -12,7 +12,7 @@ csv_files = [f for f in os.listdir(data_folder) if f.endswith('.csv')]
 
 app_ui = ui.page_sidebar(  
     ui.sidebar(
-        "Select CSV Files",
+        "Data",
         *[ui.input_checkbox(f"file_{i}", csv_file) for i, csv_file in enumerate(csv_files)],
         bg="#f8f8f8"
     ),  
@@ -48,6 +48,7 @@ def server(input, output, session):
                 for _, row in df.iterrows():
                     m.add(
                         L.Marker(
+                            name=row['name'],
                             location=(row['latitude'], row['longitude']),
                             draggable=False
                         )
@@ -55,17 +56,19 @@ def server(input, output, session):
             else:
                 points = df[['latitude', 'longitude']].values.tolist()
                 polygon = L.Polygon(
+                    name=file,
                     locations=points,
                     color="green",
                     fill_color="green"
                 )
                 m.add(polygon)
         
-        control = L.LayersControl(position='topright')
-        m.add(control)
-        m.add(L.FullScreenControl())
-        legend = L.LegendControl({"low":"#FAA", "medium":"#A55", "High":"#500"}, title="Legend", position="bottomright")
-        m.add(legend)
+        zoom_control = L.ZoomControl(position='topright')
+        m.add(zoom_control)
+        fullscreen_control = L.FullScreenControl(position='topright')
+        m.add(fullscreen_control)
+        legend_control = L.LegendControl({"low":"#FAA", "medium":"#A55", "High":"#500"}, title="Legend", position="bottomright")
+        m.add(legend_control)
 
         return m
 
