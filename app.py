@@ -37,8 +37,10 @@ def server(input, output, session):
             return 'red'
         elif 3 <= risk_value <= 5:
             return 'orange'
-        else:
+        elif 1 <= risk_value <= 2:
             return 'green'
+        else:
+            return 'blue'
 
     def is_point_in_polygon(point, polygon_points):
         polygon = Polygon(polygon_points)
@@ -87,30 +89,32 @@ def server(input, output, session):
                 earthquake_risk = row.get('earthquake_risk', 0)
                 flood_risk = row.get('flood_risk', 0)
                 
-                point_color = 'blue'
+                highest_risk = 0
                     
                 for risk_type, polygons in risk_polygons.items():
                     for polygon_points in polygons:
                         if is_point_in_polygon(point, polygon_points):
                             if risk_type == 'earthquake':
-                                point_color = get_color(earthquake_risk)                    
+                                highest_risk = max(highest_risk, earthquake_risk)                    
                             elif risk_type == 'flood':
-                                point_color = get_color(flood_risk)
+                                highest_risk = max(highest_risk, flood_risk)
                 
-                popup_content = HTML(
+                '''popup_content = HTML(
                     value="Hello <b>World</b>",
                     placeholder='Some HTML',
                     description='Some HTML',
                 )
                 popup = L.Popup(
                     child=popup_content
-                )
+                )'''
+                
+                point_color = get_color(highest_risk)
+
                 marker = L.Marker(
                         name=row['name'],
                         location=point,
                         icon=L.Icon(icon_url=f'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-{point_color}.png'),
-                        draggable=False,
-                        popup=popup
+                        draggable=False
                 )
                 m.add(marker)
         
