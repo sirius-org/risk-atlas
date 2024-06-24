@@ -3,7 +3,7 @@ import pandas as pd
 from shapely.geometry import Point, Polygon
 from shiny import App, ui, render, reactive
 from shinywidgets import output_widget, render_widget
-from ipywidgets import HTML
+from ipywidgets.widgets.widget_string import HTML
 import ipyleaflet as L
 
 # Get list of CSV files in the "data" folder
@@ -11,16 +11,22 @@ data_folder = 'data'
 csv_files = [f for f in os.listdir(data_folder) if f.endswith('.csv')]
 
 
-app_ui = ui.page_sidebar(  
+app_ui = ui.page_sidebar(
     ui.sidebar(
-        "Data",
-        *[ui.input_checkbox(f"file_{i}", csv_file) for i, csv_file in enumerate(csv_files)],
-        bg="#f8f8f8"
-    ),  
-    ui.card(
-        ui.card_header("Map"),
-        output_widget("map"),
-    ) 
+            "Data",
+            *[ui.input_checkbox(f"file_{i}", csv_file) for i, csv_file in enumerate(csv_files)],
+            bg="#f8f8f8"
+        ),
+    ui.page_fillable(
+        ui.layout_columns(
+            ui.card(
+                ui.card_header("Map"),
+                output_widget("map"),
+            ),
+        ui.card("Card 2"),
+        col_widths=(9, 3),
+        ),
+    ),
 )
 
 
@@ -45,6 +51,10 @@ def server(input, output, session):
     def is_point_in_polygon(point, polygon_points):
         polygon = Polygon(polygon_points)
         return polygon.contains(Point(point))
+
+    
+    def prova():
+        print('ho appena cliccato un marker')
     
     
     @render_widget
@@ -99,14 +109,17 @@ def server(input, output, session):
                             elif risk_type == 'flood':
                                 highest_risk = max(highest_risk, flood_risk)
                 
-                '''popup_content = HTML(
-                    value="Hello <b>World</b>",
-                    placeholder='Some HTML',
-                    description='Some HTML',
+                popup_content = HTML(
+                    value=f'''
+                        <h2>{row['name']}</h2>
+                        <p>Earthquake risk: {earthquake_risk}</p>
+                        <p>Flood risk: {flood_risk}</p>
+                    ''',
                 )
                 popup = L.Popup(
+                    location=point,
                     child=popup_content
-                )'''
+                )
                 
                 point_color = get_color(highest_risk)
 
@@ -114,8 +127,12 @@ def server(input, output, session):
                         name=row['name'],
                         location=point,
                         icon=L.Icon(icon_url=f'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-{point_color}.png'),
-                        draggable=False
+                        draggable=False,
+                        popup=popup
                 )
+
+                #marker.on_click(prova(), remove=True)
+
                 m.add(marker)
         
         zoom_control = L.ZoomControl(position='topright')
