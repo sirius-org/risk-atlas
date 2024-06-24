@@ -1,8 +1,9 @@
 import os
 import pandas as pd
+import plotly.express as px
 from shapely.geometry import Point, Polygon
 from shiny import App, ui, render, reactive
-from shinywidgets import output_widget, render_widget
+from shinywidgets import output_widget, render_widget, render_plotly
 from ipywidgets.widgets.widget_string import HTML
 import ipyleaflet as L
 
@@ -19,13 +20,37 @@ app_ui = ui.page_sidebar(
         ),
     ui.page_fillable(
         ui.layout_columns(
-            ui.card(
-                ui.card_header("Map"),
-                output_widget("map"),
+            ui.value_box(
+                "KPI Title",
+                "$1 Billion Dollars",
+                "Up 30% VS PREVIOUS 30 DAYS",
+                theme="bg-gradient-indigo-purple",
             ),
-        ui.card("Card 2"),
-        col_widths=(9, 3),
+            ui.value_box(
+                "KPI Title",
+                "$1 Billion Dollars",
+                "Up 30% VS PREVIOUS 30 DAYS",
+                theme="bg-gradient-indigo-purple",
+            ),
+            ui.value_box(
+                "KPI Title",
+                "$1 Billion Dollars",
+                "Up 30% VS PREVIOUS 30 DAYS",
+                theme="bg-gradient-indigo-purple",
+            ),
+            col_widths=(4, 4, 4)
         ),
+        ui.layout_columns(
+            ui.card(
+                output_widget("map"),
+                full_screen=True
+            ),
+        ),
+        ui.layout_columns(
+            ui.card(
+                output_widget("plot"),
+            ),
+        )
     ),
 )
 
@@ -51,10 +76,6 @@ def server(input, output, session):
     def is_point_in_polygon(point, polygon_points):
         polygon = Polygon(polygon_points)
         return polygon.contains(Point(point))
-
-    
-    def prova():
-        print('ho appena cliccato un marker')
     
     
     @render_widget
@@ -131,8 +152,6 @@ def server(input, output, session):
                         popup=popup
                 )
 
-                #marker.on_click(prova(), remove=True)
-
                 m.add(marker)
         
         zoom_control = L.ZoomControl(position='topright')
@@ -151,6 +170,44 @@ def server(input, output, session):
         m.add(legend_control)
 
         return m
+
+
+    @render_plotly
+    def plot():
+        
+        for file in csv_files:
+            if file == 'data.csv':
+                data = []
+                file_path = os.path.join(data_folder, file)
+                df = pd.read_csv(file_path)
+                for _, row in df.iterrows():
+                    earthquake_risk = row['earthquake_risk']
+                    flood_risk = row['flood_risk']
+                    data.append({
+                        'name': row['name'],
+                        'earthquake_risk': earthquake_risk,
+                        'flood_risk': flood_risk,
+                        'total_risk': earthquake_risk + flood_risk
+                    })
+                sorted_data = sorted(data, key=lambda x: x['total_risk'], reverse=True)[:3]
+                plot_df = pd.DataFrame(sorted_data)
+                fig = px.bar(
+                    plot_df,
+                    x=['earthquake_risk', 'flood_risk'],
+                    y='name',
+                    title="Top 3 Points with Highest Total Risk",
+                    labels={'value': 'Risk Value', 'name': 'Location'},
+                    color_discrete_map={
+                        'earthquake_risk': 'brown',
+                        'flood_risk': 'blue'
+                    },
+                    orientation='h'
+                )
+                fig.update_layout(barmode='stack')
+
+                return fig
+
+
 
 # Create app
 app = App(app_ui, server)
