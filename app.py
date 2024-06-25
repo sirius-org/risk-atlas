@@ -6,6 +6,7 @@ from shiny import App, ui, render, reactive
 from shinywidgets import output_widget, render_widget, render_plotly
 from ipywidgets.widgets.widget_string import HTML
 import ipyleaflet as L
+from htmltools import a, div
 
 # Get list of CSV files in the "data" folder
 data_folder = 'data'
@@ -54,9 +55,10 @@ dominant_risk_data = find_dominant_risk_type(
 
 
 app_ui = ui.page_navbar(
+    ui.nav_spacer(),
     ui.nav_panel(
         "Atlas",
-        ui.page_fillable(
+        ui.page_fluid(
             ui.layout_columns(
                 ui.value_box(
                     "Object at highest risk",
@@ -101,6 +103,12 @@ app_ui = ui.page_navbar(
             )
         )
     ),
+    title=a(
+        "SIRIUS", 
+        href="https://site.unibo.it/patrimonioculturalearischio/en/risk-atlas/explore-the-atlas-1",
+        target="_blank"
+        ),
+    fillable=True,
     sidebar=ui.sidebar(
             "Data",
             *[ui.input_checkbox(f"file_{i}", csv_file) for i, csv_file in enumerate(csv_files)],
@@ -228,38 +236,42 @@ def server(input, output, session):
 
     @render_plotly
     def plot():
-        
+        data = []
         for file in selected_files():
-            if file == 'data.csv':
-                data = []
-                file_path = os.path.join(data_folder, file)
+            if file != 'data.csv':
+                file_path = os.path.join(data_folder, 'data.csv')
                 df = pd.read_csv(file_path)
+                type_label = file[:-4]
                 for _, row in df.iterrows():
-                    earthquake_risk = row['earthquake_risk']
-                    flood_risk = row['flood_risk']
+                    type_risk = row.get(f'{type_label}_risk', 0)
                     data.append({
                         'name': row['name'],
-                        'earthquake_risk': earthquake_risk,
-                        'flood_risk': flood_risk,
-                        'total_risk': earthquake_risk + flood_risk
+                        'risk_type': f'{type_label}_risk',
+                        'risk_value': type_risk
                     })
-                sorted_data = sorted(data, key=lambda x: x['total_risk'], reverse=True)[:3]
-                plot_df = pd.DataFrame(sorted_data)
-                fig = px.bar(
-                    plot_df,
-                    x=['earthquake_risk', 'flood_risk'],
-                    y='name',
-                    title="Top 3 Points with Highest Total Risk",
-                    labels={'value': 'Risk Value', 'name': 'Location'},
-                    color_discrete_map={
-                        'earthquake_risk': 'brown',
-                        'flood_risk': 'blue'
-                    },
-                    orientation='h'
-                )
-                fig.update_layout(barmode='stack')
+    
+        plot_df = pd.DataFrame(data)
 
-                return fig
+        if plot_df.empty:
+            return HTML(value="<div>Select a layer to visualize its related risk.</div>")
+
+        fig = px.bar(
+            plot_df,
+            x='risk_value',
+            y='name',
+            color='risk_type',
+            title="Combined Risk Values",
+            labels={'risk_value': 'Risk Value', 'name': 'Object'},
+            color_discrete_map={
+                'earthquake_risk': 'brown',
+                'flood_risk': 'blue'
+            },
+            orientation='h'
+        )
+        
+        fig.update_layout(barmode='stack')
+
+        return fig
 
 
     '''# Create a dynamic render function for each CSV file
