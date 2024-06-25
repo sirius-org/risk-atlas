@@ -194,14 +194,30 @@ def server(input, output, session):
                 
                 popup_content = HTML(
                     value=f'''
-                        <h2>{row['name']}</h2>
-                        <p>Earthquake risk: {earthquake_risk}</p>
-                        <p>Flood risk: {flood_risk}</p>
+                        <div class="card" style="width: 500px;">
+                            <div class="card-body">
+                                <h5 class="card-title">{row['name']}</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">{row['alt_name']}</h6>
+                                <div class="card-text">
+                                    <dl class="row">
+                                        <dt class="col-sm-3">Description</dt>
+                                        <dd class="col-sm-9">{row['description']}</dd>
+                                        <dt class="col-sm-3">Earthquake risk</dt>
+                                        <dd class="col-sm-9">{row['earthquake_risk']}</dd>
+                                        <dt class="col-sm-3">Flood risk</dt>
+                                        <dd class="col-sm-9">{row['flood_risk']}</dd>
+                                    </dl>
+                                </div>
+                                <a href="#" class="card-link">Card link</a>
+                                <a href="#" class="card-link">Another link</a>
+                            </div>
+                        </div>
                     ''',
                 )
                 popup = L.Popup(
                     location=point,
-                    child=popup_content
+                    child=popup_content,
+                    min_width=1000,
                 )
                 
                 point_color = get_color(highest_risk)
