@@ -1,4 +1,4 @@
-import os
+import os, faicons
 import pandas as pd
 import plotly.express as px
 from shapely.geometry import Point, Polygon
@@ -11,46 +11,100 @@ import ipyleaflet as L
 data_folder = 'data'
 csv_files = [f for f in os.listdir(data_folder) if f.endswith('.csv')]
 
+for file in csv_files:
+    if file == 'data.csv':
+        data_csv = file
+        data_csv_path = os.path.join(data_folder, data_csv)
 
-app_ui = ui.page_sidebar(
-    ui.sidebar(
+data_df = pd.read_csv(data_csv_path)
+
+
+def find_highest_risk(df):
+    df['total_risk'] = df['earthquake_risk'] + df['flood_risk']
+    highest_risk_row = df.loc[df['total_risk'].idxmax()]
+    highest_risk_data = {
+        'total_risk': highest_risk_row['total_risk'],
+        'earthquake_risk': highest_risk_row['earthquake_risk'],
+        'flood_risk': highest_risk_row['flood_risk'],
+        'name': highest_risk_row['name']
+    }
+    return highest_risk_data
+
+def find_dominant_risk_type(df, risk_columns):
+    avg_risks = {}
+    for risk in risk_columns:
+        avg_risks[risk] = df[risk].mean()
+    dominant_risk = max(avg_risks, key=avg_risks.get)
+    avg_risk_value = avg_risks[dominant_risk]
+    dominant_risk_data = {
+        'dominant_risk': dominant_risk,
+        'avg_risk_value': avg_risk_value
+    }
+    return dominant_risk_data
+
+
+highest_risk_data = find_highest_risk(data_df)
+dominant_risk_data = find_dominant_risk_type(
+    data_df, 
+    [
+        'earthquake_risk',
+        'flood_risk'
+    ]
+)
+
+
+app_ui = ui.page_navbar(
+    ui.nav_panel(
+        "Atlas",
+        ui.page_fillable(
+            ui.layout_columns(
+                ui.value_box(
+                    "Object at highest risk",
+                    f"{highest_risk_data['name']}",
+                    f"Total risk: {highest_risk_data['total_risk']}",
+                    showcase=faicons.icon_svg("triangle-exclamation")
+                ),
+                ui.value_box(
+                    "Dominant risk on average",
+                    f"{dominant_risk_data['dominant_risk']}",
+                    f"Average value: {dominant_risk_data['avg_risk_value']}",
+                    showcase=faicons.icon_svg("radiation")
+                ),
+                col_widths=(6, 6)
+            ),
+            ui.layout_columns(
+                ui.card(
+                    output_widget("map"),
+                    full_screen=True
+                ),
+            ),
+            ui.layout_columns(
+                ui.card(
+                    output_widget("plot"),
+                ),
+            )
+        ),
+    ),
+    ui.nav_panel(
+        "Data",
+        ui.page_fillable(
+            ui.layout_columns(
+                ui.card(
+                    'todo'
+                ),
+                '''*[
+                    ui.card(
+                        csv_file,
+                        ui.output_data_frame(f"{csv_file.split('.')[0]}_df")
+                    ) for csv_file in csv_files
+                ],'''
+            )
+        )
+    ),
+    sidebar=ui.sidebar(
             "Data",
             *[ui.input_checkbox(f"file_{i}", csv_file) for i, csv_file in enumerate(csv_files)],
             bg="#f8f8f8"
-        ),
-    ui.page_fillable(
-        ui.layout_columns(
-            ui.value_box(
-                "KPI Title",
-                "$1 Billion Dollars",
-                "Up 30% VS PREVIOUS 30 DAYS",
-                theme="bg-gradient-indigo-purple",
-            ),
-            ui.value_box(
-                "KPI Title",
-                "$1 Billion Dollars",
-                "Up 30% VS PREVIOUS 30 DAYS",
-                theme="bg-gradient-indigo-purple",
-            ),
-            ui.value_box(
-                "KPI Title",
-                "$1 Billion Dollars",
-                "Up 30% VS PREVIOUS 30 DAYS",
-                theme="bg-gradient-indigo-purple",
-            ),
-            col_widths=(4, 4, 4)
-        ),
-        ui.layout_columns(
-            ui.card(
-                output_widget("map"),
-                full_screen=True
-            ),
-        ),
-        ui.layout_columns(
-            ui.card(
-                output_widget("plot"),
-            ),
-        )
     ),
 )
 
@@ -175,7 +229,7 @@ def server(input, output, session):
     @render_plotly
     def plot():
         
-        for file in csv_files:
+        for file in selected_files():
             if file == 'data.csv':
                 data = []
                 file_path = os.path.join(data_folder, file)
@@ -207,6 +261,19 @@ def server(input, output, session):
 
                 return fig
 
+
+    '''# Create a dynamic render function for each CSV file
+    for csv_file in csv_files:
+        def make_render_function(file_name):
+            @render.data_frame
+            def dynamic_df():
+                file_path = os.path.join(data_folder, file_name)
+                df = pd.read_csv(file_path)
+                return render.DataTable(df)
+            return dynamic_df
+
+        render_func = make_render_function(csv_file)
+        setattr(output, f"{csv_file.split('.')[0]}_df", render_func)'''
 
 
 # Create app
