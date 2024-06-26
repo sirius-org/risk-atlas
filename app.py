@@ -77,7 +77,7 @@ app_ui = ui.page_navbar(
             ui.layout_columns(
                 ui.card(
                     output_widget("map"),
-                    full_screen=True
+                    height="1000px"
                 ),
             ),
             ui.layout_columns(
@@ -89,17 +89,30 @@ app_ui = ui.page_navbar(
     ),
     ui.nav_panel(
         "Data",
-        ui.page_fillable(
+        ui.page_fluid(
             ui.layout_columns(
                 ui.card(
-                    'todo'
+                    ui.card_header(
+                        'Object data',
+                        ui.download_button("download_object_data", "Download"),
+                    ),
+                    ui.output_data_frame("object_data_df"),
                 ),
-                '''*[
-                    ui.card(
-                        csv_file,
-                        ui.output_data_frame(f"{csv_file.split('.')[0]}_df")
-                    ) for csv_file in csv_files
-                ],'''
+                ui.card(
+                    ui.card_header('Earthquake data'),
+                    ui.output_data_frame("earthquake_data_df"),
+                    ui.card_footer(
+                        ui.download_button("download_earthquake_data", "Download"),
+                    ),
+                ),
+                ui.card(
+                    ui.card_header('Flood data'),
+                    ui.output_data_frame("flood_data_df"),
+                    ui.card_footer(
+                        ui.download_button("download_flood_data", "Download"),
+                    ),
+                ),
+                col_widths=(12)
             )
         )
     ),
@@ -290,18 +303,34 @@ def server(input, output, session):
         return fig
 
 
-    '''# Create a dynamic render function for each CSV file
-    for csv_file in csv_files:
-        def make_render_function(file_name):
-            @render.data_frame
-            def dynamic_df():
-                file_path = os.path.join(data_folder, file_name)
-                df = pd.read_csv(file_path)
-                return render.DataTable(df)
-            return dynamic_df
+    @render.data_frame  
+    def object_data_df():
+        return render.DataTable(data_df)
 
-        render_func = make_render_function(csv_file)
-        setattr(output, f"{csv_file.split('.')[0]}_df", render_func)'''
+    @render.data_frame  
+    def earthquake_data_df():
+        data_csv_path = os.path.join(data_folder, 'earthquake.csv')
+        data_df = pd.read_csv(data_csv_path)
+        return render.DataTable(data_df)
+
+    @render.data_frame  
+    def flood_data_df():
+        data_csv_path = os.path.join(data_folder, 'flood.csv')
+        data_df = pd.read_csv(data_csv_path)
+        return render.DataTable(data_df)
+
+    @render.download()
+    def download_object_data():
+        return data_csv_path
+
+    @render.download()
+    def download_earthquake_data():
+        return os.path.join(data_folder, 'earthquake.csv')
+
+    @render.download()
+    def download_flood_data():
+        return os.path.join(data_folder, 'flood.csv')
+
 
 
 # Create app
