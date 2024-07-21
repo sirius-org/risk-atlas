@@ -148,7 +148,3 @@ def get_color(risk_value):
     else:
         return 'blue'
 
-
-def is_point_in_polygon(point, polygon_points):
-    polygon = Polygon(polygon_points)
-    return polygon.contains(Point(point))
