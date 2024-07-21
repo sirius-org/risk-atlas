@@ -47,7 +47,6 @@ def get_highest_risk(point, row, active_polygons):
             polygon_type = feature['properties']['type']
             polygon_shape = shape(feature['geometry'])
             if polygon_shape.contains(inverted_point):
-                print("YAAAYYYY")
                 risk_key = f'{polygon_type}_risk'
                 risk_value = row.get(risk_key, 0)
                 if risk_value > highest_risk:
