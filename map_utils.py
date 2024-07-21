@@ -8,48 +8,60 @@ import random
 
 
 def add_polygon_layers(selected_files):
+    base_folder = 'data/polygons'
     geojson_layers = []
-    for file in selected_files:
-        file_path = os.path.join('data/polygons', file)
-        try:
-            gdf = gpd.read_file(file_path)
-            gdf = gdf.to_crs(epsg=4326)
-            geojson_data = json.loads(gdf.to_json())
-            geo_json_layer = GeoJSON(
-                data=geojson_data,
-                name=file_path,
-                style={
-                    'color': 'black', 'fillColor': 'blue', 'opacity': 1, 'dashArray': '9', 'fillOpacity': 0.1, 'weight': 1
-                },
-                hover_style={
-                    'color': 'white', 'dashArray': '0', 'fillOpacity': 0.5
-                },
-            )
-            geojson_layers.append(geo_json_layer)
-        except Exception as e:
-            print(f"Error reading file {file}: {e}")
+    for folder_name in os.listdir(base_folder):
+        folder_path = os.path.join(base_folder, folder_name)
+        if os.path.isdir(folder_path):
+            for file in selected_files:
+                file_path = os.path.join(folder_path, file)
+                try:
+                    gdf = gpd.read_file(file_path)
+                    gdf = gdf.to_crs(epsg=4326)
+                    gdf['type'] = folder_name
+                    geojson_data = json.loads(gdf.to_json())
+                    geo_json_layer = GeoJSON(
+                        data=geojson_data,
+                        name=file_path,
+                        style={
+                            'color': 'black', 'fillColor': 'blue', 'opacity': 1, 'dashArray': '9', 'fillOpacity': 0.1, 'weight': 1
+                        },
+                        hover_style={
+                            'color': 'white', 'dashArray': '0', 'fillOpacity': 0.5
+                        },
+                    )
+                    geojson_layers.append(geo_json_layer)
+                except Exception as e:
+                    print(f"Error reading file {file}: {e}")
     return geojson_layers
 
 
-def add_data_points():
+def get_highest_risk(point, row, active_polygons):
+    highest_risk = 0
+    risk_type = None
+    point_shapely = Point(point)
+    inverted_point = Point(point_shapely.y, point_shapely.x)
+    for polygon_layer in active_polygons:
+        polygon_data = polygon_layer.data
+        for feature in polygon_data['features']:
+            polygon_type = feature['properties']['type']
+            polygon_shape = shape(feature['geometry'])
+            if polygon_shape.contains(inverted_point):
+                print("YAAAYYYY")
+                risk_key = f'{polygon_type}_risk'
+                risk_value = row.get(risk_key, 0)
+                if risk_value > highest_risk:
+                    highest_risk = risk_value
+                    risk_type = polygon_type
+    return highest_risk, risk_type
+
+
+def add_data_points(active_polygons):
     markers = []
     data_points = data.get_data()
-    risk_polygons = {
-        'earthquake': [],
-        'flood': []
-    }
     for _, row in data_points.iterrows():
         point = (row['latitude'], row['longitude'])
-        earthquake_risk = row.get('earthquake_risk', 0)
-        flood_risk = row.get('flood_risk', 0)
-        highest_risk = 0
-        for risk_type, polygons in risk_polygons.items():
-            for polygon_points in polygons:
-                if is_point_in_polygon(point, polygon_points):
-                    if risk_type == 'earthquake':
-                        highest_risk = max(highest_risk, earthquake_risk)                    
-                    elif risk_type == 'flood':
-                        highest_risk = max(highest_risk, flood_risk)
+        highest_risk, rist_type = get_highest_risk(point, row, active_polygons)
         popup = create_popup(row, point)
         point_color = get_color(highest_risk)
         marker = L.Marker(
@@ -114,11 +126,16 @@ def create_map(polygons):
         position="bottomright"
     )
     m.add(legend_control)
-    for marker in add_data_points():
-        m.add(marker)
+
+    active_polygons = []
     if len(polygons) > 0:
         for geojson_obj in polygons:
             m.add(geojson_obj)
+            active_polygons.append(geojson_obj)
+
+    for marker in add_data_points(active_polygons):
+        m.add(marker)
+    
     return m
 
 

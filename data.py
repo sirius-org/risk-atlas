@@ -8,8 +8,13 @@ def get_data():
     return data_df
 
 def get_polygons():
-    path ='data/polygons'
-    shape_files = [f for f in os.listdir(path) if f.endswith('.shp')]
+    base_folder ='data/polygons'
+    shape_files = []
+    for folder_name in os.listdir(base_folder):
+        folder_path = os.path.join(base_folder, folder_name)
+        for file in os.listdir(folder_path):
+            if file.endswith('.shp'):
+                shape_files.append(file)
     return shape_files
 
 def get_files():
