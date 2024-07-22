@@ -5,7 +5,7 @@ from shinywidgets import render_widget, render_plotly
 from ipywidgets.widgets.widget_string import HTML
 import plotly.express as px
 from data_utils import find_highest_risk, find_dominant_risk_type
-from map_utils import get_color, is_point_in_polygon, create_map, add_polygon_layers
+from map_utils import get_color, create_map, add_polygon_layers
 import data
 
 
