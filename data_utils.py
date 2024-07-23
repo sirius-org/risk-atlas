@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 def find_highest_risk(df):
     df['total_risk'] = df['earthquake_risk'] + df['flood_risk']
     highest_risk_row = df.loc[df['total_risk'].idxmax()]
@@ -10,6 +11,7 @@ def find_highest_risk(df):
         'name': highest_risk_row['name']
     }
     return highest_risk_data
+
 
 def find_dominant_risk_type(df, risk_columns):
     avg_risks = {}
@@ -22,3 +24,4 @@ def find_dominant_risk_type(df, risk_columns):
         'avg_risk_value': avg_risk_value
     }
     return dominant_risk_data
+

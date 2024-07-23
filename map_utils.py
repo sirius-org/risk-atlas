@@ -5,6 +5,7 @@ import data, os, json
 import geopandas as gpd
 from ipyleaflet import GeoJSON
 import random
+from datetime import datetime
 
 
 def add_polygon_layers(selected_files):
@@ -59,9 +60,10 @@ def add_data_points(active_polygons):
     markers = []
     data_points = data.get_data()
     for _, row in data_points.iterrows():
-        point = (row['latitude'], row['longitude'])
+        entity = data.get_wikidata_entities(row['name'])
+        point = (entity['latitude'], entity['longitude'])
         highest_risk, rist_type = get_highest_risk(point, row, active_polygons)
-        popup = create_popup(row, point)
+        popup = create_popup(row, entity, point)
         point_color = get_color(highest_risk)
         marker = L.Marker(
             name=row['name'],
@@ -74,25 +76,29 @@ def add_data_points(active_polygons):
     return markers
 
         
-def create_popup(row, point):
+def create_popup(row, entity, point):
     popup_content = HTML(
         value=f'''
             <div class="card" style="width: 500px;">
                 <div class="card-body">
-                    <h5 class="card-title">{row['name']}</h5>
-                    <h6 class="card-subtitle mb-2 text-muted">{row['alt_name']}</h6>
+                    <h5 class="card-title">{entity['label']}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">{entity['id']}</h6>
                     <div class="card-text">
                         <dl class="row">
                             <dt class="col-sm-3">Description</dt>
-                            <dd class="col-sm-9">{row['description']}</dd>
+                            <dd class="col-sm-9">{entity['description']}</dd>
+                            <dt class="col-sm-3">Inception</dt>
+                            <dd class="col-sm-9">{entity['date_created']}</dd>
+
                             <dt class="col-sm-3">Earthquake risk</dt>
                             <dd class="col-sm-9">{row['earthquake_risk']}</dd>
                             <dt class="col-sm-3">Flood risk</dt>
                             <dd class="col-sm-9">{row['flood_risk']}</dd>
                         </dl>
                     </div>
-                    <a href="#" class="card-link">Card link</a>
-                    <a href="#" class="card-link">Another link</a>
+                    <a href="https://www.wikidata.org/wiki/{entity['id']}" target="_blank" class="card-link">Wikidata</a>
+                    <a href="{entity['official_site']}" target="_blank" class="card-link">Official site</a>
+                    <a href="https://viaf.org/viaf/{entity['viaf']}/" target="_blank" class="card-link">VIAF</a>
                 </div>
             </div>
         ''',

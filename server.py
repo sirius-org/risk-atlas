@@ -11,7 +11,6 @@ import data
 
 data_folder = "data"
 data_df = data.get_data()
-csv_files = data.get_files()
 shape_files = data.get_polygons()
 
 
