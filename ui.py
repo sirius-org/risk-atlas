@@ -32,12 +32,12 @@ app_ui = ui.page_navbar(
             ui.layout_columns(
                 ui.card(
                     output_widget("map"),
-                    height="1000px"
+                    height="800px"
                 ),
             ),
             ui.layout_columns(
                 ui.card(
-                    output_widget("plot"),
+                    ui.output_plot("plot"),
                 ),
             )
         ),
