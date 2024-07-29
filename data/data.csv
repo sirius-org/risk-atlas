@@ -1,5 +1,4 @@
-id,name,alt_name,notes,earthquake_risk,flood_risk
-1,Q721817,Basilica di San Vitale,"Important site for studying Byzantine art and architecture.",6,2
-2,Q644288,Mausoleo di Galla Placidia,"Notable for its rich mosaic decoration.",4,3
-3,Q1256487,Battistero Neoniano,"Also known as the Orthodox Baptistery.",1,7
-4,Q832278,Basilica di Sant'Apollinare Nuovo,"Renowned for its stunning mosaics depicting biblical scenes.",3,1
+id,name,latitude,longitude,risk1,risk2,risk3,risk4
+Q721817,Basilica di San Vitale,44.418717,12.20239,5,2,11,3
+Q644288,Mausoleo di Galla Placidia,44.41559,12.19736,7,12,3,9
+Q1256487,Battistero Neoniano,44.421021,12.197077,3,10,5,8
