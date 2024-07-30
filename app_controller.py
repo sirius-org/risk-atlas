@@ -18,12 +18,24 @@ class AppController:
         return self.ui_manager.create_ui()
 
     def server(self, input, output, session):
+        
+        @reactive.Calc
+        def get_selected_files():
+            return [shape_files[i] for i in range(len(shape_files)) if input[f"file_{i}"]()]
 
         @render_widget
         def map():
             map = self.map_manager.create_map()
-            self.map_manager.add_markers(self.data_manager.get_data())
+            self.map_manager.add_markers(self.data_manager.get_entities())
+            
+            #if len(self.data_manager.get_shapes()) > 0:
+            #    for shape in self.data_manager.get_shapes():
+            #        self.map_manager.add_layer(shape)
             return map
+
+        @render.ui
+        def layers():
+             return *[ui.input_checkbox(f"file_{i}", shape_file) for i, shape_file in enumerate(self.data_manager.get_shapes())]
 
         @render.plot
         def plot():

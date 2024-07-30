@@ -64,7 +64,7 @@ class UIManager:
             fillable=True,
             sidebar=ui.sidebar(
                 "Layers",
-                #*[ui.input_checkbox(f"file_{i}", shape_file) for i, shape_file in enumerate(data.get_polygons())],
+                ui.output_ui("layers"),
                 bg="#f8f8f8",
                 open="always",
             ),
