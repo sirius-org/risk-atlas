@@ -68,33 +68,8 @@ class DataManager:
             for file in files:
                 if file.endswith('.shp'):
                     file_path = os.path.join(folder_path, file)
-                    #geojson_shape = self.__transform_to_geojson(folder_name, file_path)
                     shape_files.append(file_path)
         return shape_files
-
-    """def __transform_to_geojson(self, folder_name, file_path):
-        gdf = gpd.read_file(file_path)
-        gdf = gdf.to_crs(epsg=4326)
-        gdf['type'] = folder_name
-        geojson_data = json.loads(gdf.to_json())
-        geo_json_layer = GeoJSON(
-            data=geojson_data,
-            name=file_path,
-            style={
-                'color': 'black', 
-                'fillColor': 'blue', 
-                'opacity': 1, 
-                'dashArray': '9', 
-                'fillOpacity': 0.1, 
-                'weight': 1
-            },
-            hover_style={
-                'color': 'white', 
-                'dashArray': '0', 
-                'fillOpacity': 0.5
-            },
-        )
-        return geo_json_layer"""
     
     def get_entities(self):
         return self.entities

@@ -20,36 +20,32 @@ class AppController:
 
     def server(self, input, output, session):
         
-        '''@reactive.Calc
-        def get_selected_files():
-            selected_files = [self.data_manager.get_shape_files()[i] for i in range(len(self.data_manager.get_shape_files())) if input[f"file_{i}"]()]
-            print(selected_files)
-            return selected_files'''
+        @reactive.Calc
+        def get_selected_layers():
+            layers = self.data_manager.get_layers()
+            selected_layers = [layers[i] for i in range(len(layers)) if input[f"file_{i}"]()]
+            return selected_layers
 
         @render_widget
         def map():
             map = self.map_manager.create_map()
-            self.map_manager.add_markers(self.data_manager.get_entities())
-            self.map_manager.add_layers(self.data_manager.get_layers())
-
-            #shapes = self.data_manager.create_shapes(get_selected_files())
-            #print(shapes)
-            #if len(get_selected_files()) > 0:
-            #    self.map_manager.
-            #if len(self.data_manager.get_shapes()) > 0:
-            #    for shape in self.data_manager.get_shapes():
-            #        self.map_manager.add_layer(shape)
+            markers = self.data_manager.get_entities()
+            layers = get_selected_layers()
+            self.map_manager.add_markers(markers)
+            if layers:
+                self.map_manager.add_layers(layers)
             return map
 
         @render.ui
         def layers():
-            return ui.input_checkbox_group(
+            return [ui.input_checkbox(f"file_{i}", folder) for i, folder in enumerate(self.data_manager.get_folders())]
+            '''return ui.input_checkbox_group(
                 "layer_checkboxes",
                 label="Layers",
                 choices={
                     f"{folder}": ui.span(f"{folder}") for folder in self.data_manager.get_folders()
                 }
-            )
+            )'''
 
         @render.plot
         def plot():
