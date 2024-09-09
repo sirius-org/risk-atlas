@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, json
 import pandas as pd
 from SPARQLWrapper import SPARQLWrapper, JSON
 from datetime import datetime
@@ -6,17 +6,16 @@ from datetime import datetime
 class DataManager:
     def __init__(self):
         self.data = self.load_data()
-        self.shapes = self.load_shapes()
+        self.layers = self.load_layers()
         self.entities = self.load_entities()
+        self.folders = self.load_folders()
+        #self.shape_files = self.load_shape_files()
 
     def load_data(self):
         data_folder = 'data'
         data_csv_path = os.path.join(data_folder, 'data.csv')
         data = pd.read_csv(data_csv_path)
         return data
-
-    def get_data(self):
-        return self.data
 
     def load_entities(self):
         entities = []
@@ -52,25 +51,28 @@ class DataManager:
         data_extracter = WikiDataQueryResults(query)
         df = data_extracter.load_as_dict()
         return df
-    
-    def get_entities(self):
-        return self.entities
 
-    def load_shapes(self):
-        shape_folder ='data/polygons'
+    #######
+    def load_folders(self):
+        base_folder = 'data/polygons'
+        folders = [folder_name for folder_name in os.listdir(base_folder)]
+        return folders
+
+    def load_layers(self):
         shape_files = []
-        for folder_name in os.listdir(shape_folder):
-            folder_path = os.path.join(shape_folder, folder_name)
-            for file in os.listdir(folder_path):
+        base_folder = 'data/polygons'
+        shape_folder = self.load_folders()
+        for folder_name in shape_folder:
+            folder_path = os.path.join(base_folder, folder_name)
+            files = [f for f in os.listdir(folder_path)]
+            for file in files:
                 if file.endswith('.shp'):
-                    geojson_shape = self.__transform_to_geojson()
-                    shape_files.append(geojson_shape)
+                    file_path = os.path.join(folder_path, file)
+                    #geojson_shape = self.__transform_to_geojson(folder_name, file_path)
+                    shape_files.append(file_path)
         return shape_files
 
-    def get_shapes(self):
-        return self.shapes
-
-    def __transform_to_geojson(self, folder_name, file_path):
+    """def __transform_to_geojson(self, folder_name, file_path):
         gdf = gpd.read_file(file_path)
         gdf = gdf.to_crs(epsg=4326)
         gdf['type'] = folder_name
@@ -92,12 +94,52 @@ class DataManager:
                 'fillOpacity': 0.5
             },
         )
-        return geo_json_layer
+        return geo_json_layer"""
+    
+    def get_entities(self):
+        return self.entities
+
+    def get_data(self):
+        return self.data
+    
+    def get_layers(self):
+        return self.layers
+
+    def get_folders(self):
+        return self.folders
+
+    '''
+    def create_shapes(self, selected_files):
+        shape_folder ='data/polygons'
+        shape_files = []
+        for folder_name in os.listdir(shape_folder):
+            folder_path = os.path.join(shape_folder, folder_name)
+            for file in selected_files:
+                file_path = os.path.join(folder_path, file)
+                if file.endswith('.shp'):
+                    geojson_shape = self.__transform_to_geojson(folder_name, file_path)
+                    shape_files.append(geojson_shape)
+        self.active_shapes = shape_files
+
+    def load_shape_files(self):
+        shape_folder ='data/polygons'
+        shape_files = []
+        for folder_name in os.listdir(shape_folder):
+            folder_path = os.path.join(shape_folder, folder_name)
+            for file in os.listdir(folder_path):
+                file_path = os.path.join(folder_path, file)
+                if file.endswith('.shp'):
+                    shape_files.append(file)
+        return shape_files
+
+    def get_shape_files(self):
+        return self.shape_files
+    '''
 
 
 class WikiDataQueryResults:
     def __init__(self, query: str):
-        self.user_agent = "WDQS-example Python/%s.%s" % (sys.version_info[0], sys.version_info[1])
+        self.user_agent = f"WDQS-example Python/{sys.version_info[0]}.{sys.version_info[1]}"
         self.endpoint_url = "https://query.wikidata.org/sparql"
         self.sparql = SPARQLWrapper(self.endpoint_url, agent=self.user_agent)
         self.sparql.setQuery(query)

@@ -2,6 +2,9 @@ from ipyleaflet import Map, GeoJSON, ZoomControl, FullScreenControl, LegendContr
 import ipywidgets as widgets
 from ipywidgets.widgets.widget_string import HTML
 import os
+import json
+import geopandas as gpd
+
 
 class MapManager:
     def __init__(self):
@@ -87,5 +90,32 @@ class MapManager:
         )
         return popup
 
-    def add_layer(self, layer):
-        self.map.add(layer)
+    def add_layers(self, data):
+        for path in data:
+            type = path.split('/')[-2]
+            layer = self.__transform_to_geojson(type, path)
+            self.map.add(layer)
+
+    def __transform_to_geojson(self, folder_name, file_path):
+        gdf = gpd.read_file(file_path)
+        gdf = gdf.to_crs(epsg=4326)
+        gdf['type'] = folder_name
+        geojson_data = json.loads(gdf.to_json())
+        geo_json_layer = GeoJSON(
+            data=geojson_data,
+            name=file_path,
+            style={
+                'color': 'black', 
+                'fillColor': 'blue', 
+                'opacity': 1, 
+                'dashArray': '9', 
+                'fillOpacity': 0.1, 
+                'weight': 1
+            },
+            hover_style={
+                'color': 'white', 
+                'dashArray': '0', 
+                'fillOpacity': 0.5
+            },
+        )
+        return geo_json_layer

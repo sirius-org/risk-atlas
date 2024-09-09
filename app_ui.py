@@ -63,7 +63,7 @@ class UIManager:
             ),
             fillable=True,
             sidebar=ui.sidebar(
-                "Layers",
+                "title sidebar",
                 ui.output_ui("layers"),
                 bg="#f8f8f8",
                 open="always",

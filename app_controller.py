@@ -1,4 +1,4 @@
-from shiny import ui, App, render
+from shiny import ui, App, render, reactive
 from shinywidgets import render_widget
 from app_map import MapManager
 from app_data import DataManager
@@ -8,6 +8,7 @@ from ipyleaflet import Map
 
 
 class AppController:
+
     def __init__(self):
         self.data_manager = DataManager()
         self.map_manager = MapManager()
@@ -19,15 +20,22 @@ class AppController:
 
     def server(self, input, output, session):
         
-        @reactive.Calc
+        '''@reactive.Calc
         def get_selected_files():
-            return [shape_files[i] for i in range(len(shape_files)) if input[f"file_{i}"]()]
+            selected_files = [self.data_manager.get_shape_files()[i] for i in range(len(self.data_manager.get_shape_files())) if input[f"file_{i}"]()]
+            print(selected_files)
+            return selected_files'''
 
         @render_widget
         def map():
             map = self.map_manager.create_map()
             self.map_manager.add_markers(self.data_manager.get_entities())
-            
+            self.map_manager.add_layers(self.data_manager.get_layers())
+
+            #shapes = self.data_manager.create_shapes(get_selected_files())
+            #print(shapes)
+            #if len(get_selected_files()) > 0:
+            #    self.map_manager.
             #if len(self.data_manager.get_shapes()) > 0:
             #    for shape in self.data_manager.get_shapes():
             #        self.map_manager.add_layer(shape)
@@ -35,7 +43,13 @@ class AppController:
 
         @render.ui
         def layers():
-             return *[ui.input_checkbox(f"file_{i}", shape_file) for i, shape_file in enumerate(self.data_manager.get_shapes())]
+            return ui.input_checkbox_group(
+                "layer_checkboxes",
+                label="Layers",
+                choices={
+                    f"{folder}": ui.span(f"{folder}") for folder in self.data_manager.get_folders()
+                }
+            )
 
         @render.plot
         def plot():
