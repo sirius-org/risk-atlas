@@ -1,0 +1,73 @@
+# UI
+
+[app]
+title = "SIRIUS"
+href = "https://site.unibo.it/patrimonioculturalearischio/en/risk-atlas/explore-the-atlas-1"
+
+    [app.nav_panel_01]
+    title = "Risk Atlas"
+
+        [app.nav_panel_01.value_box_01]
+        title = "Object at highest risk"
+        value = "Value"
+
+        [app.nav_panel_01.value_box_02]
+        title = "Dominant risk on average"
+        value = "Value"
+
+        [app.nav_panel_01.value_box_03]
+        title = "Numbers of objects affected"
+        value = "Value"
+
+    [app.nav_panel_02]
+    title = "Data"
+
+
+# MAP
+
+[map]
+zoom = 14
+latitude = 44.4183598
+longitude = 12.2035294
+
+    [map.legend]
+    title = "Legend"
+
+        [map.legend.color]
+        low = "green"
+        medium = "orange"
+        high = "red"
+        neutral = "grey"
+        
+        [map.legend.value]
+        low = 1
+        medium = 5
+        high = 10
+
+        [map.legend.text]
+        low = "Low: between"
+        medium = "Medium: between"
+        high = "High: beyond"
+
+
+# GEOGRAPHIC DATA
+[geo]
+base_folder = "data/polygons"
+
+
+# RISKS
+[risk]
+risks = ["Earthquake",
+         "Flood"
+        ]
+
+    [risk.earthquake]
+    shp_path = "data/polygons/earthquake/Carta_della_subsidenza.shp"
+    heading = "risk1"
+    color = "brown"
+
+    [risk.flood]
+    shp_path = "data/polygons/flood/MS23_Instab_GBE.shp"
+    heading = "risk2"
+    color = "blue"
+

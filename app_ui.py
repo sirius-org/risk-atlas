@@ -1,13 +1,18 @@
 from htmltools import a
 from shiny import ui
-from shinywidgets import output_widget 
+from shinywidgets import output_widget
+import tomli
+
+
+with open("config.toml", mode="rb") as fp:
+    config = tomli.load(fp)
 
 class UIManager:
     def create_ui(self):
         app_ui = ui.page_navbar(
             ui.nav_spacer(),
             ui.nav_panel(
-                "Risk Atlas",
+                config["app"]["nav_panel_01"]["title"],
                 ui.page_fluid(
                     ui.layout_columns(
                         output_widget("map"),
@@ -15,23 +20,20 @@ class UIManager:
                             ui.row(
                                 ui.column(12, 
                                     ui.value_box(
-                                        "Object at highest risk",
-                                        "VALUE",
-                                        "blblblb"
+                                        config["app"]["nav_panel_01"]["value_box_01"]["title"],
+                                        config["app"]["nav_panel_01"]["value_box_01"]["value"],
                                         #f"{highest_risk_data['name']}",
                                         #f"Total risk: {highest_risk_data['total_risk']}",
                                     ),
                                     ui.value_box(
-                                        "Dominant risk on average",
-                                        "VALUE",
-                                        "blblblb"
+                                        config["app"]["nav_panel_01"]["value_box_02"]["title"],
+                                        config["app"]["nav_panel_01"]["value_box_02"]["value"],
                                         #f"{dominant_risk_data['dominant_risk']}",
                                         #f"Average value: {dominant_risk_data['avg_risk_value']}",
                                     ),
                                     ui.value_box(
-                                        "Number of objects affected",
-                                        "VALUE",
-                                        "blblblb"
+                                        config["app"]["nav_panel_01"]["value_box_03"]["title"],
+                                        config["app"]["nav_panel_01"]["value_box_03"]["value"],
                                         #f"{highest_risk_data['name']}",
                                         #f"Total risk: {highest_risk_data['total_risk']}",
                                     ),
@@ -44,7 +46,7 @@ class UIManager:
                 )
             ),
             ui.nav_panel(
-                "Data",
+                config["app"]["nav_panel_02"]["title"],
                 ui.page_fluid(
                     ui.card(
                         ui.layout_columns(
@@ -57,8 +59,8 @@ class UIManager:
                 )
             ),
             title=a(
-                "SIRIUS", 
-                href="https://site.unibo.it/patrimonioculturalearischio/en/risk-atlas/explore-the-atlas-1",
+                config["app"]["title"], 
+                href=config["app"]["href"],
                 target="_blank"
             ),
             fillable=True,
