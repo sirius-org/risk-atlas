@@ -31,6 +31,7 @@ class AppController:
             layer_group = self.map_manager.generate_layers()
             layers = layer_group.layers
             selected_layers = [layers[i] for i in range(len(layers)) if input[f"file_{i}"]()]
+            self.map_manager.active_layers = selected_layers
             return selected_layers
 
         @render_widget

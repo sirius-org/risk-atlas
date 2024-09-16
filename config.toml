@@ -29,6 +29,33 @@ href = "https://site.unibo.it/patrimonioculturalearischio/en/risk-atlas/explore-
 zoom = 14
 latitude = 44.4183598
 longitude = 12.2035294
+popup_content = """
+    <div class="card" style="width: 500px;">
+        <div class="card-body">
+            <h5 class="card-title">{row['label']}</h5>
+            <h6 class="card-subtitle mb-2 text-muted">{row['alt_label']}</h6>
+            <div class="card-text">
+                <dl class="row">
+                    <dt class="col-sm-3">Description</dt>
+                    <dd class="col-sm-9">{row['description']}</dd>
+                    <dt class="col-sm-3">Inception</dt>
+                    <dd class="col-sm-9">{row['date_created']}</dd>
+                    <dt class="col-sm-3">Risk 1</dt>
+                    <dd class="col-sm-9">{row['risk1']}</dd>
+                    <dt class="col-sm-3">Risk 2</dt>
+                    <dd class="col-sm-9">{row['risk2']}</dd>
+                    <dt class="col-sm-3">Risk 3</dt>
+                    <dd class="col-sm-9">{row['risk3']}</dd>
+                    <dt class="col-sm-3">Risk 4</dt>
+                    <dd class="col-sm-9">{row['risk4']}</dd>
+                </dl>
+            </div>
+            <a href="https://www.wikidata.org/wiki/{row['id']}" target="_blank" class="card-link">Wikidata</a>
+            <a href="{row['official_site']}" target="_blank" class="card-link">Official site</a>
+            <a href="https://viaf.org/viaf/{row['viaf']}/" target="_blank" class="card-link">VIAF</a>
+        </div>
+    </div>
+    """
 
     [map.legend]
     title = "Legend"
@@ -60,6 +87,7 @@ base_folder = "data/polygons"
 risks = ["Earthquake",
          "Flood"
         ]
+
 
     [risk.earthquake]
     shp_path = "data/polygons/earthquake/Carta_della_subsidenza.shp"

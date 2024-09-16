@@ -1,7 +1,7 @@
 from ipyleaflet import Map, GeoJSON, ZoomControl, FullScreenControl, LegendControl, MarkerCluster, Marker, Icon, Popup, LayerGroup
 import ipywidgets as widgets
 from ipywidgets.widgets.widget_string import HTML
-from shapely import Point
+from shapely.geometry import Point, Polygon, shape
 import os
 import json
 import geopandas as gpd
@@ -14,6 +14,7 @@ with open("config.toml", mode="rb") as fp:
 class MapManager:
     def __init__(self):
         self.map = None
+        self.active_layers = None
 
     def create_map(self):
         self.map = Map(
@@ -44,16 +45,9 @@ class MapManager:
         self.map.add(legend_control)
 
 
-
-
-
-
-
-
-
     def load_files(self):
         shape_files = []
-        base_folder = 'data/polygons'
+        base_folder = config["geo"]["base_folder"]
         folders = [folder for folder in os.listdir(base_folder)]
         for folder in folders:
             folder_path = os.path.join(base_folder, folder)
@@ -102,28 +96,6 @@ class MapManager:
         return geo_json_layer
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    ##################################################
-    ##################################################
-
     def generate_markers(self, data):
         markers = []
         for row in data:
@@ -148,6 +120,7 @@ class MapManager:
 
     def update_markers(self, marker_cluster):
         for marker in marker_cluster.markers:
+            print(marker)
             highest_risk_value = self.__get_highest_risk_value(marker)
             point_color = self.__get_color(4)
             marker.icon = Icon(
@@ -157,8 +130,18 @@ class MapManager:
     def __get_highest_risk_value(self, marker):
         highest_risk = 0
         point = Point(marker.location[1], marker.location[0])
-        
-
+        for layer in self.active_layers:
+            layer_data = layer.data
+            for feature in layer_data["features"]:
+                # polygon_type = feature['properties']['type']
+                geometry = shape(feature['geometry'])
+                if geometry.contains(point):
+                    # risk_key = f'{polygon_type}_risk'
+                    # risk_value = row.get(risk_key, 0)
+                    # if risk_value > highest_risk:
+                    #    highest_risk = risk_value
+                    #    risk_type = polygon_type
+                    print(True)
 
     def __get_color(self, risk_value):
         if risk_value > config["map"]["legend"]["value"]["high"]:
@@ -171,9 +154,6 @@ class MapManager:
             return config["map"]["legend"]["color"]["neutral"]
     '''
     def get_highest_risk(point, row, active_polygons):
-        for polygon_layer in active_polygons:
-            polygon_data = polygon_layer.data
-            for feature in polygon_data['features']:
                 polygon_type = feature['properties']['type']
                 polygon_shape = shape(feature['geometry'])
                 if polygon_shape.contains(inverted_point):
@@ -187,38 +167,14 @@ class MapManager:
     '''
 
     def __add_popup(self, row, point):
-        popup_content = HTML(
-        value=f'''
-            <div class="card" style="width: 500px;">
-                <div class="card-body">
-                    <h5 class="card-title">{row['label']}</h5>
-                    <h6 class="card-subtitle mb-2 text-muted">{row['alt_label']}</h6>
-                    <div class="card-text">
-                        <dl class="row">
-                            <dt class="col-sm-3">Description</dt>
-                            <dd class="col-sm-9">{row['description']}</dd>
-                            <dt class="col-sm-3">Inception</dt>
-                            <dd class="col-sm-9">{row['date_created']}</dd>
-                            <dt class="col-sm-3">Risk 1</dt>
-                            <dd class="col-sm-9">{row['risk1']}</dd>
-                            <dt class="col-sm-3">Risk 2</dt>
-                            <dd class="col-sm-9">{row['risk2']}</dd>
-                            <dt class="col-sm-3">Risk 3</dt>
-                            <dd class="col-sm-9">{row['risk3']}</dd>
-                            <dt class="col-sm-3">Risk 4</dt>
-                            <dd class="col-sm-9">{row['risk4']}</dd>
-                        </dl>
-                    </div>
-                    <a href="https://www.wikidata.org/wiki/{row['id']}" target="_blank" class="card-link">Wikidata</a>
-                    <a href="{row['official_site']}" target="_blank" class="card-link">Official site</a>
-                    <a href="https://viaf.org/viaf/{row['viaf']}/" target="_blank" class="card-link">VIAF</a>
-                </div>
-            </div>
-        ''',
+        popup_template = config['map']['popup_content']
+        popup_content = eval(f"f'''{popup_template}'''")
+        popup_html = HTML(
+            value = popup_content,
         )
         popup = Popup(
             location=point,
-            child=popup_content,
+            child=popup_html,
             min_width=1000,
         )
         return popup
