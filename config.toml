@@ -84,18 +84,21 @@ base_folder = "data/polygons"
 
 # RISKS
 [risk]
-risks = ["Earthquake",
-         "Flood"
-        ]
+risks = [
+    "Earthquake",
+    "Flood",
+    ]
 
 
-    [risk.earthquake]
-    shp_path = "data/polygons/earthquake/Carta_della_subsidenza.shp"
+    [risk.1]
+    name = "Earthquake"
+    path = "data/polygons/earthquake/Carta_della_subsidenza.shp"
     heading = "risk1"
-    color = "brown"
+    fill_color = "brown"
 
-    [risk.flood]
-    shp_path = "data/polygons/flood/MS23_Instab_GBE.shp"
+    [risk.2]
+    name = "Flood"
+    path = "data/polygons/flood/MS23_Instab_GBE.shp"
     heading = "risk2"
-    color = "blue"
+    fill_color = "blue"
 

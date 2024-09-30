@@ -1,9 +1,9 @@
 from shiny import ui, App, render, reactive
 from shinywidgets import render_widget
-from app_map import MapManager
-from app_data import DataManager
-from app_ui import UIManager
-from app_plot import PlotManager
+from src.mapmanager import MapManager
+from src.datamanager import DataManager
+from src.uimanager import UIManager
+from src.plotmanager import PlotManager
 from ipyleaflet import Map
 import tomli
 

@@ -1,6 +1,6 @@
 # app.py
 from shiny import App
-from app_controller import AppController
+from src.controller import AppController
 
 def create_app():
     controller = AppController()
