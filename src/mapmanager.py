@@ -2,6 +2,7 @@ from ipyleaflet import Map, GeoJSON, ZoomControl, FullScreenControl, LegendContr
 import ipywidgets as widgets
 from ipywidgets.widgets.widget_string import HTML
 from shapely.geometry import Point, Polygon, shape
+from bs4 import BeautifulSoup
 import os
 import json
 import geopandas as gpd
@@ -39,7 +40,7 @@ class MapManager:
         legend_control = LegendControl(
             {
                 f'{config["map"]["legend"]["text"]["low"]} {config["map"]["legend"]["value"]["low"]} and {config["map"]["legend"]["value"]["medium"]}': config["map"]["legend"]["color"]["low"],
-                f'{config["map"]["legend"]["text"]["medium"]} {config["map"]["legend"]["value"]["medium"]} and {config["map"]["legend"]["value"]["high"]}': config["map"]["legend"]["color"]["medium"],
+                f'{config["map"]["legend"]["text"]["medium"]} {config["map"]["legend"]["value"]["medium"] + 1} and {config["map"]["legend"]["value"]["high"]}': config["map"]["legend"]["color"]["medium"],
                 f'{config["map"]["legend"]["text"]["high"]} {config["map"]["legend"]["value"]["high"]}': config["map"]["legend"]["color"]["high"]
             },
             title = config["map"]["legend"]["title"],
@@ -74,8 +75,9 @@ class MapManager:
         geojson_data = json.loads(gdf.to_json())
         geo_json_layer = GeoJSON(
             data = geojson_data,
-            name = file_path,
+            name = heading,
             style = {
+                'title': heading,
                 'color': 'black', 
                 'fillColor': f'{fill_color}', 
                 'opacity': 1, 
@@ -118,9 +120,8 @@ class MapManager:
 
     def update_markers(self, marker_cluster):
         for marker in marker_cluster.markers:
-            #print(marker)
             highest_risk_value = self.__get_highest_risk_value(marker)
-            point_color = self.__get_color(4)
+            point_color = self.__get_color(highest_risk_value)
             marker.icon = Icon(
                 icon_url=f'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-{point_color}.png'
             )
@@ -128,19 +129,20 @@ class MapManager:
 
     def __get_highest_risk_value(self, marker):
         highest_risk = 0
+        html_value = marker.popup.child.value
+        soup = BeautifulSoup(html_value, 'html.parser')
         point = Point(marker.location[1], marker.location[0])
         for layer in self.active_layers:
             layer_data = layer.data
             for feature in layer_data["features"]:
-                # polygon_type = feature['properties']['type']
                 geometry = shape(feature['geometry'])
                 if geometry.contains(point):
-                    # risk_key = f'{polygon_type}_risk'
-                    # risk_value = row.get(risk_key, 0)
-                    # if risk_value > highest_risk:
-                    #    highest_risk = risk_value
-                    #    risk_type = polygon_type
-                    print(True)
+                    risk_header = feature['properties']['style']['title']
+                    risk_value = soup.find(attrs={"data-id": risk_header}).get('data-value')
+                    if risk_value:
+                        if int(risk_value) > highest_risk:
+                            highest_risk = int(risk_value)
+        return highest_risk
 
 
     def __get_color(self, risk_value):
@@ -153,20 +155,6 @@ class MapManager:
         else:
             return config["map"]["legend"]["color"]["neutral"]
 
-
-    '''
-    def get_highest_risk(point, row, active_polygons):
-                polygon_type = feature['properties']['type']
-                polygon_shape = shape(feature['geometry'])
-                if polygon_shape.contains(inverted_point):
-                    risk_key = f'{polygon_type}_risk'
-                    risk_value = row.get(risk_key, 0)
-                    if risk_value > highest_risk:
-                        highest_risk = risk_value
-                        risk_type = polygon_type
-        return highest_risk
-
-    '''
 
     def __add_popup(self, row, point):
         popup_template = config['map']['popup_content']
