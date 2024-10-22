@@ -32,7 +32,8 @@ class AppController:
             layers = layer_group.layers
             selected_layers = [layers[i] for i in range(len(layers)) if input[f"file_{i}"]()]
             self.map_manager.active_layers = selected_layers
-            return selected_layers
+            return selected_layers        
+
 
         @render_widget
         def map():
@@ -44,13 +45,19 @@ class AppController:
             if layers:
                 self.map_manager.add_active_layers(layers)
                 self.map_manager.update_markers(markers)
+                
+                self.map_manager.update_value_boxes(input.box_1)
+            
             return map
 
         @render.ui
         def layers():
-            #return [ui.input_checkbox(f"file_{i}", folder) for i, folder in enumerate(self.data_manager.get_folders())]
             layers = [ui.input_checkbox(f"file_{i}", risk) for i, risk in enumerate(config["risk"]["risks"])]
             return layers
+        
+        @render.ui
+        def value_boxes():
+            return [ui.value_box(title, 0, id=f"box_{i}") for i, title in enumerate(config["app"]["nav_panel_01"]["value_boxes"])]
 
         @render.plot
         def plot():

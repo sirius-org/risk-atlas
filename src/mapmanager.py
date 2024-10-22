@@ -19,6 +19,7 @@ class MapManager:
     def __init__(self):
         self.map = None
         self.active_layers = None
+        self.points_in_geometry = set()
 
 
     def create_map(self):
@@ -127,16 +128,52 @@ class MapManager:
             )
 
 
-    def __get_highest_risk_value(self, marker):
-        highest_risk = 0
-        html_value = marker.popup.child.value
-        soup = BeautifulSoup(html_value, 'html.parser')
-        point = Point(marker.location[1], marker.location[0])
+    def is_in_geometry(self, point):
         for layer in self.active_layers:
             layer_data = layer.data
             for feature in layer_data["features"]:
                 geometry = shape(feature['geometry'])
                 if geometry.contains(point):
+                    self.points_in_geometry.add(point)
+                    return True
+
+
+    def count_points_in_geometry(self):
+        count = len(self.points_in_geometry)
+        return count
+
+    
+    def update_value_boxes(self, box):
+        # prendi i valori che servono da map_manager
+        # - funzione per 1: 
+            # check punti nei layer attivi;
+            # prendi i marker;
+            # prendi i popup;
+                # per ogni popup, prendi i rischi associati ai layer attivi
+                # somma i rischi
+                # trova la somma più alta tra tutti i popup
+                # ritorna il titolo dell'oggetto con la somma più alta
+        # - funzione per 2
+            # check punti nei layer attivi;
+            # prendi i marker;
+            # prendi i popup;
+                # per ogni popup, prendi i rischi associati ai layer attivi
+                # somma gli stessi tipi di rischio tra diversi popup e fai la media
+                # ritorna il tipo di rischio con la media più alta
+        count_points = self.count_points_in_geometry()
+        #box.value = count_points
+        return count_points
+
+
+    def __get_highest_risk_value(self, marker):
+        highest_risk = 0
+        html_value = marker.popup.child.value
+        soup = BeautifulSoup(html_value, 'html.parser')
+        point = Point(marker.location[1], marker.location[0])
+        if self.is_in_geometry(point):
+            for layer in self.active_layers:
+                layer_data = layer.data
+                for feature in layer_data["features"]:
                     risk_header = feature['properties']['style']['title']
                     risk_value = soup.find(attrs={"data-id": risk_header}).get('data-value')
                     if risk_value:
@@ -168,3 +205,29 @@ class MapManager:
             min_width=1000,
         )
         return popup
+
+
+
+'''def find_highest_risk(df):
+    df['total_risk'] = df['earthquake_risk'] + df['flood_risk']
+    highest_risk_row = df.loc[df['total_risk'].idxmax()]
+    highest_risk_data = {
+        'total_risk': highest_risk_row['total_risk'],
+        'earthquake_risk': highest_risk_row['earthquake_risk'],
+        'flood_risk': highest_risk_row['flood_risk'],
+        'name': highest_risk_row['name']
+    }
+    return highest_risk_data
+
+
+def find_dominant_risk_type(df, risk_columns):
+    avg_risks = {}
+    for risk in risk_columns:
+        avg_risks[risk] = df[risk].mean()
+    dominant_risk = max(avg_risks, key=avg_risks.get)
+    avg_risk_value = avg_risks[dominant_risk]
+    dominant_risk_data = {
+        'dominant_risk': dominant_risk,
+        'avg_risk_value': avg_risk_value
+    }
+    return dominant_risk_data'''

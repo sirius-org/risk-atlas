@@ -7,7 +7,10 @@ import tomli
 with open("config.toml", mode="rb") as fp:
     config = tomli.load(fp)
 
+
 class UIManager:
+    
+
     def create_ui(self):
         app_ui = ui.page_navbar(
             ui.nav_spacer(),
@@ -19,24 +22,7 @@ class UIManager:
                         ui.layout_columns(
                             ui.row(
                                 ui.column(12, 
-                                    ui.value_box(
-                                        config["app"]["nav_panel_01"]["value_box_01"]["title"],
-                                        config["app"]["nav_panel_01"]["value_box_01"]["value"],
-                                        #f"{highest_risk_data['name']}",
-                                        #f"Total risk: {highest_risk_data['total_risk']}",
-                                    ),
-                                    ui.value_box(
-                                        config["app"]["nav_panel_01"]["value_box_02"]["title"],
-                                        config["app"]["nav_panel_01"]["value_box_02"]["value"],
-                                        #f"{dominant_risk_data['dominant_risk']}",
-                                        #f"Average value: {dominant_risk_data['avg_risk_value']}",
-                                    ),
-                                    ui.value_box(
-                                        config["app"]["nav_panel_01"]["value_box_03"]["title"],
-                                        config["app"]["nav_panel_01"]["value_box_03"]["value"],
-                                        #f"{highest_risk_data['name']}",
-                                        #f"Total risk: {highest_risk_data['total_risk']}",
-                                    ),
+                                    ui.output_ui("value_boxes")
                                 ),
                             ),
                         ),

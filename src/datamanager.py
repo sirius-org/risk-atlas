@@ -3,18 +3,37 @@ import pandas as pd
 from SPARQLWrapper import SPARQLWrapper, JSON
 from datetime import datetime
 
+
 class DataManager:
+
+    
     def __init__(self):
         self.data = self.load_data()
         #self.layers = self.load_layers()
         self.entities = self.load_entities()
         #self.folders = self.load_folders()
 
+
     def load_data(self):
         data_folder = 'data'
         data_csv_path = os.path.join(data_folder, 'data.csv')
         data = pd.read_csv(data_csv_path)
         return data
+
+    
+    # AGGIUNGERE LOAD GEO DATA
+    # AGGIUNGERE GET GEO DATA
+    # AGGIUNGERE LOAD RISK DATA
+    # AGGIUNGERE GET RISK DATA
+    # IN QUESTI LOAD DEVO 
+    # # PRENDERE LO ZIP A [result][resources][0/1/?][url]
+    # # SPACCHETTARLO 
+    # # PRENDERE I FILE (per ora solo .shp)
+    # IN load_entities DEVO PRENDERE GLI ID DAL CONFIG FILE
+    # RIMUOVERE load_data
+    # RINOMINARE load_entities IN load_entity_data
+    # RINOMINARE get_entities IN get_entity_data
+
 
     def load_entities(self):
         entities = []
@@ -24,6 +43,7 @@ class DataManager:
             entity.update(row_dict)
             entities.append(entity)
         return entities
+
 
     def __get_entity(self, entity_id):
         query = f"""
@@ -51,44 +71,25 @@ class DataManager:
         df = data_extracter.load_as_dict()
         return df
 
-    '''def load_folders(self):
-        base_folder = 'data/polygons'
-        
-        return folders'''
-
-    '''def load_layers(self):
-        shape_files = []
-        base_folder = 'data/polygons'
-        shape_folder = self.load_folders()
-        for folder_name in shape_folder:
-            folder_path = os.path.join(base_folder, folder_name)
-            files = [f for f in os.listdir(folder_path)]
-            for file in files:
-                if file.endswith('.shp'):
-                    file_path = os.path.join(folder_path, file)
-                    shape_files.append(file_path)
-        return shape_files'''
     
     def get_entities(self):
         return self.entities
 
+
     def get_data(self):
         return self.data
-    
-    '''def get_layers(self):
-        return self.layers'''
-
-    '''def get_folders(self):
-        return self.folders'''
 
 
 class WikiDataQueryResults:
+
+
     def __init__(self, query: str):
         self.user_agent = f"WDQS-example Python/{sys.version_info[0]}.{sys.version_info[1]}"
         self.endpoint_url = "https://query.wikidata.org/sparql"
         self.sparql = SPARQLWrapper(self.endpoint_url, agent=self.user_agent)
         self.sparql.setQuery(query)
         self.sparql.setReturnFormat(JSON)
+
 
     def __transform2dict(self, result):
         new_result = {
@@ -104,6 +105,7 @@ class WikiDataQueryResults:
                         value['value'] = f"{year} CE"
                 new_result[key] = value['value']
         return new_result
+
 
     def load_as_dict(self):
         results = self.sparql.queryAndConvert()['results']['bindings']

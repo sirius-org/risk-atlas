@@ -1,3 +1,4 @@
+#
 # UI
 
 [app]
@@ -6,23 +7,16 @@ href = "https://site.unibo.it/patrimonioculturalearischio/en/risk-atlas/explore-
 
     [app.nav_panel_01]
     title = "Risk Atlas"
-
-        [app.nav_panel_01.value_box_01]
-        title = "Object at highest risk"
-        value = "Value"
-
-        [app.nav_panel_01.value_box_02]
-        title = "Dominant risk on average"
-        value = "Value"
-
-        [app.nav_panel_01.value_box_03]
-        title = "Numbers of objects affected"
-        value = "Value"
+    value_boxes = [
+        "Object at highest risk",
+        "Dominant risk on average",
+        "Numbers of objects affected"
+    ]
 
     [app.nav_panel_02]
     title = "Data"
 
-
+#
 # MAP
 
 [map]
@@ -85,11 +79,23 @@ popup_content = """
         high = "High: beyond"
 
 
+#
+# ENTITY DATA
+[entity]
+entities = [
+    "Q721817",
+    "Q644288",
+    "Q1256487"
+]
+
+
+#
 # GEOGRAPHIC DATA
 [geo]
 base_folder = "data/polygons"
 
 
+#
 # RISKS
 [risk]
 risks = [
@@ -102,10 +108,14 @@ risks = [
     path = "data/polygons/earthquake/Carta_della_subsidenza.shp"
     heading = "risk1"
     fill_color = "brown"
+    api_service = "https://dati.arpae.it/it/api/3/action/package_show?id="
+    id = "arpa_acq_sott_basea2"
 
     [risk.2]
     name = "Flood"
     path = "data/polygons/flood/MS23_Instab_GBE.shp"
     heading = "risk2"
     fill_color = "blue"
+    api_service = "https://datacatalog.regione.emilia-romagna.it/catalogCTA/api/3/action/package_show?id="
+    id = "carta-della-subsidenza-2011-2016"
 
