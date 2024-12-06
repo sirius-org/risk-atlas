@@ -100,46 +100,59 @@ class AppController:
                 )
 
         
-        block_counter = reactive.Value(0)
-        activity_observations = reactive.Value({})
+        activity_block_counter = reactive.Value(0)
+        #activity_observations = reactive.Value({})
         @reactive.Effect
         @reactive.event(input.add_activity)
         def add_activity_block():
-            current_block = block_counter()
+            current_block = activity_block_counter()
             ui.insert_ui(
                 ui.card(
                     ui.card_header(f"activity-{current_block}"),
                     ui.input_selectize(f"activity_type_{current_block}", "Activity type", ["Blalla", "Blolososososo"]),
                     ui.input_text_area(f"activity_description_{current_block}", "Activity description"),
                     ui.input_selectize(f"previous_activity_{current_block}", "Previous activity", ["Act1", "Act2"]),
-
-                    ui.input_action_button(f"add_observation_{current_block}", "Add observation")
+                    ui.row(
+                        ui.input_action_button(f"add_observation_{current_block}", "Add observation", class_="btn-success"),
+                        ui.input_action_button(f"remove_activity_{current_block}", "Remove activity", class_="btn-danger")
+                    ),
+                    id=f"activity_{current_block}",
                 ),
                 selector="#add_activity",
                 where="beforeBegin",
             )
 
-            activity_observations.set({**activity_observations(), current_block: []})
-
-            block_counter.set(current_block + 1)
+            #activity_observations.set({**activity_observations(), current_block: []})
+            activity_block_counter.set(current_block + 1)
+            
+            observation_block_counter = reactive.Value(0)
             @reactive.Effect
             @reactive.event(input[f"add_observation_{current_block}"])
             def add_observation():
-                current_observations = activity_observations()[current_block]
-                new_observation_id = len(current_observations) + 1
-                current_observations.append(f"observation-{new_observation_id}")
-                activity_observations.set({**activity_observations(), current_block: current_observations})
+                observation_id = observation_block_counter()
                 ui.insert_ui(
                     ui.card(
-                        ui.card_header(f"Observation {new_observation_id}"),
-                        ui.input_text_area(f"observation_text_{current_block}_{new_observation_id}", "Observation details")
+                        ui.card_header(f"observation-{observation_id}"),
+                        ui.input_text_area(f"observation_text_{current_block}_{observation_id}", "Observation details"),
+                        ui.input_action_button(f"remove_observation_{current_block}_{observation_id}", "Remove observation", class_="btn-danger"),
+                        id=f"observation_{current_block}_{observation_id}"
                     ),
                     selector=f"#add_observation_{current_block}",
                     where="beforeBegin",
                 )
+                observation_block_counter.set(observation_id + 1)
 
+                @reactive.Effect
+                @reactive.event(input[f"remove_observation_{current_block}_{observation_id}"])
+                def remove_observation():
+                    ui.remove_ui(selector=f"#observation_{current_block}_{observation_id}")
+
+            @reactive.Effect
+            @reactive.event(input[f"remove_activity_{current_block}"])
+            def remove_activity_block():
+                ui.remove_ui(selector=f"#activity_{current_block}")
         
-        
+
         uploaded_file = reactive.Value(None)
         @reactive.Effect
         @reactive.event(input.geodata_upload_button)
@@ -167,14 +180,6 @@ class AppController:
             else:
                 print("No file uploaded.")
 
-        
-        '''@reactive.Calc
-        def get_selected_layers():
-            layer_group = self.map_manager.generate_layers()
-            layers = layer_group.layers
-            selected_layers = [layers[i] for i in range(len(layers)) if input[f"file_{i}"]()]
-            self.map_manager.active_layers = selected_layers
-            return selected_layers'''
 
         selected_layers = reactive.Value([])
         @reactive.Effect
@@ -238,3 +243,12 @@ class AppController:
         def table():
             data = self.data_manager.get_data()
             return render.DataGrid(data, selection_mode="rows")
+
+
+        '''@reactive.Calc
+        def get_selected_layers():
+            layer_group = self.map_manager.generate_layers()
+            layers = layer_group.layers
+            selected_layers = [layers[i] for i in range(len(layers)) if input[f"file_{i}"]()]
+            self.map_manager.active_layers = selected_layers
+            return selected_layers'''
