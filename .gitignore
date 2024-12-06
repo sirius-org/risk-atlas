@@ -1,0 +1,10 @@
+venv/
+node_modules/
+__pycache__/
+cache-directory/
+users.duckdb
+dbsetup.py
+data/
+NOTES.txt
+package-lock.json
+package.json
