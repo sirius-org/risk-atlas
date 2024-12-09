@@ -81,12 +81,8 @@ class AppController:
                         ui.input_select("object_select", "Object", config["entity"]["entities"]),
                         ui.input_text("author", "Author"),
                     ),
-                    ui.card(
-                        ui.card_header("Context"),
-                        ui.layout_column_wrap(
-                            ui.input_action_button("add_activity", "Add activity"),
-                        )
-                    ),
+                    
+                    ui.input_action_button("add_phase", "Add phase", class_="btn-success"),
                     
                     ui.input_action_button("logout_button", "Logout"),
                     
@@ -100,58 +96,81 @@ class AppController:
                 )
 
         
-        activity_block_counter = reactive.Value(0)
-        #activity_observations = reactive.Value({})
+        phase_counter = reactive.Value(0)
         @reactive.Effect
-        @reactive.event(input.add_activity)
-        def add_activity_block():
-            current_block = activity_block_counter()
+        @reactive.event(input.add_phase)
+        def add_phase():
+            current_phase = phase_counter()
             ui.insert_ui(
                 ui.card(
-                    ui.card_header(f"activity-{current_block}"),
-                    ui.input_selectize(f"activity_type_{current_block}", "Activity type", ["Blalla", "Blolososososo"]),
-                    ui.input_text_area(f"activity_description_{current_block}", "Activity description"),
-                    ui.input_selectize(f"previous_activity_{current_block}", "Previous activity", ["Act1", "Act2"]),
-                    ui.row(
-                        ui.input_action_button(f"add_observation_{current_block}", "Add observation", class_="btn-success"),
-                        ui.input_action_button(f"remove_activity_{current_block}", "Remove activity", class_="btn-danger")
+                    ui.card_header(f"phase-{current_phase}"),
+                    ui.input_select(f"phase_type_{current_phase}", "Phase type", ["Choice 1", "Choice 2"]),
+                    ui.layout_column_wrap(
+                        ui.input_action_button(f"add_activity_{current_phase}", "Add activity", class_="btn-success"),
+                        ui.input_action_button(f"remove_phase_{current_phase}", "Remove phase", class_="btn-danger"),
+                        width=1/2
                     ),
-                    id=f"activity_{current_block}",
+                    id=f"phase_{current_phase}"
                 ),
-                selector="#add_activity",
+                selector="#add_phase",
                 where="beforeBegin",
             )
+            phase_counter.set(current_phase + 1)
 
-            #activity_observations.set({**activity_observations(), current_block: []})
-            activity_block_counter.set(current_block + 1)
-            
-            observation_block_counter = reactive.Value(0)
+            activity_block_counter = reactive.Value(0)
             @reactive.Effect
-            @reactive.event(input[f"add_observation_{current_block}"])
-            def add_observation():
-                observation_id = observation_block_counter()
+            @reactive.event(input[f"add_activity_{current_phase}"])
+            def add_activity_block():
+                current_activity = activity_block_counter()
                 ui.insert_ui(
                     ui.card(
-                        ui.card_header(f"observation-{observation_id}"),
-                        ui.input_text_area(f"observation_text_{current_block}_{observation_id}", "Observation details"),
-                        ui.input_action_button(f"remove_observation_{current_block}_{observation_id}", "Remove observation", class_="btn-danger"),
-                        id=f"observation_{current_block}_{observation_id}"
+                        ui.card_header(f"activity-{current_phase}-{current_activity}"),
+                        ui.input_text_area(f"activity_description_{current_phase}_{current_activity}", "Activity description"),
+                        ui.input_selectize(f"previous_activity_{current_activity}_{current_activity}", "Previous activity", ["Act1", "Act2"]),
+                        ui.row(
+                            ui.input_action_button(f"add_observation_{current_phase}_{current_activity}", "Add observation", class_="btn-success"),
+                            ui.input_action_button(f"remove_activity_{current_phase}_{current_activity}", "Remove activity", class_="btn-danger")
+                        ),
+                        id=f"activity_{current_phase}_{current_activity}",
                     ),
-                    selector=f"#add_observation_{current_block}",
+                    selector=f"#add_activity_{current_phase}",
                     where="beforeBegin",
                 )
-                observation_block_counter.set(observation_id + 1)
+                activity_block_counter.set(current_activity + 1)
+                
+                observation_block_counter = reactive.Value(0)
+                @reactive.Effect
+                @reactive.event(input[f"add_observation_{current_phase}_{current_activity}"])
+                def add_observation():
+                    current_observation = observation_block_counter()
+                    ui.insert_ui(
+                        ui.card(
+                            ui.card_header(f"observation-{current_phase}-{current_activity}-{current_observation}"),
+                            ui.input_selectize(f"observation_type_{current_phase}_{current_activity}_{current_observation}", "Observation type", ["Blalla", "Blolososososo"]),
+                            ui.input_text_area(f"observation_text_{current_phase}_{current_activity}_{current_observation}", "Observation text"),
+                            ui.input_action_button(f"remove_observation_{current_phase}_{current_activity}_{current_observation}", "Remove observation", class_="btn-danger"),
+                            id=f"observation_{current_phase}_{current_activity}_{current_observation}"
+                        ),
+                        selector=f"#add_observation_{current_phase}_{current_activity}",
+                        where="beforeBegin",
+                    )
+                    observation_block_counter.set(current_observation + 1)
+
+                    @reactive.Effect
+                    @reactive.event(input[f"remove_observation_{current_phase}_{current_activity}_{current_observation}"])
+                    def remove_observation():
+                        ui.remove_ui(selector=f"#observation_{current_phase}_{current_activity}_{current_observation}")
 
                 @reactive.Effect
-                @reactive.event(input[f"remove_observation_{current_block}_{observation_id}"])
-                def remove_observation():
-                    ui.remove_ui(selector=f"#observation_{current_block}_{observation_id}")
+                @reactive.event(input[f"remove_activity_{current_phase}_{current_activity}"])
+                def remove_activity_block():
+                    ui.remove_ui(selector=f"#activity_{current_phase}_{current_activity}")
 
             @reactive.Effect
-            @reactive.event(input[f"remove_activity_{current_block}"])
-            def remove_activity_block():
-                ui.remove_ui(selector=f"#activity_{current_block}")
-        
+            @reactive.event(input[f"remove_phase_{current_phase}"])
+            def remove_phase_block():
+                ui.remove_ui(selector=f"#phase_{current_phase}")
+
 
         uploaded_file = reactive.Value(None)
         @reactive.Effect

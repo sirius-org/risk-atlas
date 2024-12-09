@@ -120,7 +120,62 @@ query = """
     } 
     GROUP BY ?entity ?label ?description ?official_site ?viaf
     """
+#
+# VOCABULARY
+[vocabulary]
+    [observation_types]
+        Description = "http://vocab.getty.edu/page/aat/300435416"
+        Measurement = "http://vocab.getty.edu/page/aat/300435430"
+        Condition = "http://vocab.getty.edu/page/aat/300435425"
+        Location = "http://vocab.getty.edu/page/aat/300435449"
+        Diagnosis = "http://vocab.getty.edu/page/aat/300137593"
+        Status = "http://vocab.getty.edu/page/aat/300438433"
+        Budget = "http://vocab.getty.edu/page/aat/300027514"
 
+    #[concepts]
+    #contexts = {
+    #    "Physical context": "XXX",
+    #    "Social context": "XXX",
+    #    "Economic context": "XXX",
+    #    "Political context": "XXX",
+    #   "Legal context": "XXX",
+    #    "Administrative context": "XXX"
+    #}
+    #agents = {
+    #    "Physical forces": "XXX",
+    #    "Vandalism": "XXX",
+    #    "Fire": "XXX",
+    #    "Water": "XXX",
+    #    "Pests": "XXX",
+    #    "Pollutants": "XXX",
+    #    "Light": "XXX",
+    #    "Temperature": "XXX",
+    #    "Humidity": "XXX",
+    #    "Dissociation": "XXX",
+    #}
+    #scores = {
+    #    "A-Score": "XXX",
+    #    "B-Score": "XXX",
+    #    "C-Score": "XXX",
+    #    "MR-Score": "XXX"
+    #}
+    #frequencies = {
+    #    "Rare": "XXX",
+    #    "Common": "XXX", 
+    #    "Cumulative": "XXX"
+    #}
+    #layers = {
+    #    "Region": "XXX",
+    #    "Site": "XXX",
+    #    "Building": "XXX"
+    #}
+    #stages = {
+    #    "Avoid": "XXX",
+    #    "Block": "XXX",
+    #    "Detect": "XXX",
+    #    "Respond": "XXX",
+    #    "Treat": "XXX"
+    #}
 
 #
 # GEOGRAPHIC DATA
