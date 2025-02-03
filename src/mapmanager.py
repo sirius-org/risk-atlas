@@ -7,7 +7,6 @@ import os
 import json
 import geopandas as gpd
 import tomli
-from src.geodatamanager import GeoDataManager
 import cProfile, pstats, io
 from pstats import SortKey
 
@@ -22,7 +21,6 @@ class MapManager:
         self.map = None
         self.active_layers = []
         self.points_in_geometry = set()
-        #self.geo_data_manager = GeoDataManager()
 
 
     def create_map(self):
@@ -104,12 +102,12 @@ class MapManager:
 
     def generate_markers(self, data):
         markers = []
-        for row in data:
+        for i, row in data.iterrows():
             point = (row['latitude'], row['longitude'])
             point_color = 'lightblue'
             popup = self.add_popup(row, point)
             marker = Marker(
-                name = row['id'],
+                name = row['label'],
                 location = point,
                 icon = AwesomeIcon(
                     name="university",

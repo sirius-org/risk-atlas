@@ -1,13 +1,11 @@
 from shiny import ui, App, render, reactive
 from shinywidgets import render_widget
 from src.mapmanager import MapManager
-from src.datamanager import DataManager
 from src.uimanager import UIManager
 from src.plotmanager import PlotManager
-from src.entitydatamanager import EntityDataManager
 from ipyleaflet import Map
 import tomli
-from src.dbfunctions import check_login, add_geodataframe, get_table_names, get_geospatial_data
+from src.dbfunctions import check_login, add_geodataframe, get_table_names, get_geospatial_data, add_object, get_objects
 import tempfile
 import zipfile
 import shutil
@@ -21,9 +19,6 @@ with open("config.toml", mode="rb") as fp:
 class AppController:
 
     def __init__(self):
-        #
-        self.data_manager = DataManager()
-        self.entity_data_manager = EntityDataManager()
         self.map_manager = MapManager()
         self.ui_manager = UIManager()
         self.plot_manager = PlotManager()
@@ -64,30 +59,51 @@ class AppController:
         @render.ui
         def login_content():
             if logged_in():
-                return ui.layout_columns(
-                    ui.card(
-                        ui.card_header("Geographical data"),
-                        ui.input_file(
-                            "geodata_upload",
-                            "Upload data",
-                            accept=[".zip"],
-                            multiple=False
+                return ui.page_fluid(
+                    ui.navset_bar(
+                        ui.nav_panel(
+                            "Geographic data",
+                            ui.card(
+                                ui.input_file(
+                                    "geodata_upload",
+                                    "Select file",
+                                    accept=[".zip"],
+                                    multiple=False
+                                ),
+                                ui.input_action_button(
+                                    "geodata_upload_button", 
+                                    "Upload"),
+                            ),
                         ),
-                        ui.input_action_button(
-                            "geodata_upload_button", 
-                            "Process data"),
+                        ui.nav_panel(
+                            "Object data",
+                            ui.card(
+                                ui.input_text("object_id", "Object ID"),
+                                ui.input_action_button("add_object_button", "Add object", class_="btn-success"),
+                            ),
+                            ui.card(
+                                ui.card_header(
+                                    "Objects"
+                                ),
+                                ui.output_data_frame("object_table")
+                            ),
+                        ),
+                        ui.nav_panel(
+                            "Assessment data", 
+                            ui.input_action_button("add_phase", "Add phase", class_="btn-success"),
+                        ),
+                        id="edit_data_navset_bar",
+                        title="Edit"
                     ),
-                    ui.card(
-                        ui.input_select("object_select", "Object", config["entity"]["entities"]),
-                        ui.input_text("author", "Author"),
-                    ),
-                    
-                    ui.input_action_button("add_phase", "Add phase", class_="btn-success"),
-                    
                     ui.input_action_button("logout_button", "Logout"),
+                )
+                
+                '''
+                ui.layout_columns(
                     
                     col_widths=12
                 )
+                '''
             else:
                 return ui.layout_columns(
                     ui.input_text("username", "Username", ""),
@@ -104,11 +120,10 @@ class AppController:
             ui.insert_ui(
                 ui.card(
                     ui.card_header(f"phase-{current_phase}"),
-                    ui.input_select(f"phase_type_{current_phase}", "Phase type", ["Choice 1", "Choice 2"]),
-                    ui.layout_column_wrap(
+                    ui.input_select(f"phase_type_{current_phase}", "Phase type", config["vocabulary"]["phase_types"]),
+                    ui.card_footer(
                         ui.input_action_button(f"add_activity_{current_phase}", "Add activity", class_="btn-success"),
                         ui.input_action_button(f"remove_phase_{current_phase}", "Remove phase", class_="btn-danger"),
-                        width=1/2
                     ),
                     id=f"phase_{current_phase}"
                 ),
@@ -127,7 +142,7 @@ class AppController:
                         ui.card_header(f"activity-{current_phase}-{current_activity}"),
                         ui.input_text_area(f"activity_description_{current_phase}_{current_activity}", "Activity description"),
                         ui.input_selectize(f"previous_activity_{current_activity}_{current_activity}", "Previous activity", ["Act1", "Act2"]),
-                        ui.row(
+                        ui.card_footer(
                             ui.input_action_button(f"add_observation_{current_phase}_{current_activity}", "Add observation", class_="btn-success"),
                             ui.input_action_button(f"remove_activity_{current_phase}_{current_activity}", "Remove activity", class_="btn-danger")
                         ),
@@ -146,15 +161,48 @@ class AppController:
                     ui.insert_ui(
                         ui.card(
                             ui.card_header(f"observation-{current_phase}-{current_activity}-{current_observation}"),
-                            ui.input_selectize(f"observation_type_{current_phase}_{current_activity}_{current_observation}", "Observation type", ["Blalla", "Blolososososo"]),
+                            ui.input_selectize(f"observation_type_{current_phase}_{current_activity}_{current_observation}", "Observation type", config["vocabulary"]["observation_types"]),
                             ui.input_text_area(f"observation_text_{current_phase}_{current_activity}_{current_observation}", "Observation text"),
-                            ui.input_action_button(f"remove_observation_{current_phase}_{current_activity}_{current_observation}", "Remove observation", class_="btn-danger"),
+                            ui.input_selectize(f"observation_refers_to_{current_phase}_{current_activity}_{current_observation}", "Refers to", config["vocabulary"]["concepts"]),
+                            ui.card_footer(
+                                ui.input_action_button(f"remove_observation_{current_phase}_{current_activity}_{current_observation}", "Remove observation", class_="btn-danger"),
+                            ),
                             id=f"observation_{current_phase}_{current_activity}_{current_observation}"
                         ),
                         selector=f"#add_observation_{current_phase}_{current_activity}",
                         where="beforeBegin",
                     )
                     observation_block_counter.set(current_observation + 1)
+
+                    # Handle dynamic inputs based on observation type
+                    @reactive.Effect
+                    @reactive.event(input[f"observation_type_{current_phase}_{current_activity}_{current_observation}"])
+                    def update_observation_type():
+                        observation_type = input[f"observation_type_{current_phase}_{current_activity}_{current_observation}"]
+                        
+                        # Render additional inputs for 'measurement' type
+                        if observation_type == "measurement":
+                            # Add numeric inputs for measurements
+                            ui.insert_ui(
+                                ui.input_numeric(f"measurement_low_score_{current_phase}_{current_activity}_{current_observation}", "Low score"),
+                                selector=f"#observation_{current_phase}_{current_activity}_{current_observation}",
+                                where="beforeEnd"
+                            )
+                            ui.insert_ui(
+                                ui.input_numeric(f"measurement_mid_score_{current_phase}_{current_activity}_{current_observation}", "Mid score"),
+                                selector=f"#observation_{current_phase}_{current_activity}_{current_observation}",
+                                where="beforeEnd"
+                            )
+                            ui.insert_ui(
+                                ui.input_numeric(f"measurement_high_score_{current_phase}_{current_activity}_{current_observation}", "High score"),
+                                selector=f"#observation_{current_phase}_{current_activity}_{current_observation}",
+                                where="beforeEnd"
+                            )
+                        else:
+                            # Remove numeric inputs if not a 'measurement' type
+                            ui.remove_ui(selector=f"#measurement_low_score_{current_phase}_{current_activity}_{current_observation}")
+                            ui.remove_ui(selector=f"#measurement_mid_score_{current_phase}_{current_activity}_{current_observation}")
+                            ui.remove_ui(selector=f"#measurement_high_score_{current_phase}_{current_activity}_{current_observation}")
 
                     @reactive.Effect
                     @reactive.event(input[f"remove_observation_{current_phase}_{current_activity}_{current_observation}"])
@@ -200,6 +248,25 @@ class AppController:
                 print("No file uploaded.")
 
 
+        @reactive.Effect
+        @reactive.event(input.add_object_button)
+        def add_object_event():
+            object_id = input.object_id()
+            if object_id:
+                add_object(object_id)
+
+
+        @reactive.Calc
+        def reactive_object_data():
+            return get_objects()
+
+
+        @render.data_frame
+        def object_table():
+            data = reactive_object_data()
+            return render.DataGrid(data, selection_mode="rows")
+
+
         selected_layers = reactive.Value([])
         @reactive.Effect
         @reactive.event(input.update_map_button)
@@ -227,8 +294,7 @@ class AppController:
         @render_widget
         def map():
             map = self.map_manager.create_map()
-            entities = self.data_manager.get_entities()
-            #entities = self.entity_data_manager.data
+            entities = get_objects()
             markers = self.map_manager.generate_markers(entities)
             self.map_manager.add_markers(markers)
             #layers = get_selected_layers()
@@ -260,8 +326,9 @@ class AppController:
 
         @render.data_frame
         def table():
-            data = self.data_manager.get_data()
-            return render.DataGrid(data, selection_mode="rows")
+            #data = get_objects()
+            #return render.DataGrid(data, selection_mode="rows")
+            pass
 
 
         '''@reactive.Calc
