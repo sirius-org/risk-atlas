@@ -1,0 +1,227 @@
+#
+# UI
+
+[app]
+title = "SIRIUS"
+href = "https://site.unibo.it/patrimonioculturalearischio/en/risk-atlas/explore-the-atlas-1"
+
+    [app.nav_panel_01]
+    title = "Risk Atlas"
+    value_boxes = [
+        "Object at highest risk",
+        "Dominant risk on average",
+        "Numbers of objects affected"
+    ]
+
+    [app.nav_panel_02]
+    title = "Data"
+
+#
+# MAP
+
+[map]
+zoom = 14
+latitude = 44.4183598
+longitude = 12.2035294
+popup_content = """
+    <div class="card" style="width: 500px;">
+        <div class="card-body">
+            <h5 class="card-title">{row['label']} ({row['wikidata_id']})</h5>
+            <h6 class="card-subtitle mb-2 text-muted">{row['alt_label']}</h6>
+            <div class="card-text">
+                <dl class="row">
+                    <dt class="col-sm-3">Coordinates</dt>
+                    <dd class="col-sm-9">{row['latitude']}, {row['longitude']}</dd>
+                    <dt class="col-sm-3">Description</dt>
+                    <dd class="col-sm-9">{row['description']}</dd>
+                    <dt class="col-sm-3">Inception</dt>
+                    <dd class="col-sm-9">{row['date']}</dd>
+                    <dt class="col-sm-3">Property of</dt>
+                    <dd class="col-sm-9">{row['property']}</dd>
+                </dl>
+            </div>
+            <a href="https://www.wikidata.org/wiki/{row['wikidata_id']}" target="_blank" class="card-link">Wikidata</a>
+            <a href="{row['official_site']}" target="_blank" class="card-link">Official site</a>
+            <a href="https://viaf.org/viaf/{row['viaf']}/" target="_blank" class="card-link">VIAF</a>
+        </div>
+    </div>
+    """
+
+    [map.legend]
+    title = "Legend"
+
+        [map.legend.color]
+        low = "green"
+        medium = "orange"
+        high = "red"
+        neutral = "grey"
+        
+        [map.legend.value]
+        low = 1
+        medium = 5
+        high = 10
+
+        [map.legend.text]
+        low = "Low: between"
+        medium = "Medium: between"
+        high = "High: beyond"
+
+
+#
+# ENTITY DATA
+[entity]
+entities = [
+    "Q721817",
+    "Q644288",
+    "Q1256487"
+]
+
+endpoint_url = "https://query.wikidata.org/sparql"
+
+user_agent = "WDQS-example Python/{sys.version_info[0]}.{sys.version_info[1]}"
+
+query = """
+    SELECT ?entity ?label ?description (SAMPLE(?latitude) AS ?latitude) (SAMPLE(?longitude) AS ?longitude) ?official_site ?viaf 
+    WHERE {
+        VALUES_CLAUSE
+        
+        ?entity rdfs:label ?label .
+        FILTER (LANG(?label) = "en")
+
+        OPTIONAL { 
+            ?entity skos:altLabel ?alt_label .
+            FILTER (LANG(?alt_label) = "it") 
+        }
+        OPTIONAL { 
+            ?entity p:P625 ?coordinate .
+            ?coordinate psv:P625 ?coordinateValue .
+            ?coordinateValue wikibase:geoLatitude ?latitude .
+            ?coordinateValue wikibase:geoLongitude ?longitude .
+        }
+        OPTIONAL { 
+            ?entity p:P571 ?inception .
+            ?inception psv:P571 ?inceptionValue .
+            ?inceptionValue wikibase:timeValue ?date_created .
+        }
+        OPTIONAL { ?entity wdt:P856 ?official_site }
+        OPTIONAL { ?entity wdt:P214 ?viaf }
+    } 
+    GROUP BY ?entity ?label ?description ?official_site ?viaf
+    """
+#
+# VOCABULARY
+[vocabulary]
+    
+    [vocabulary.phase_types]
+    context = "context"
+    identify = "identify"
+    analyse = "analyse"
+    evaluate = "evaluate"
+    treat = "treat"
+
+    [vocabulary.observation_types]
+    description = "description"
+    measurement = "measurement"
+    condition = "condition"
+    location = "location"
+    diagnosis = "diagnosis"
+    status = "status"
+    budget = "budget"
+
+    [vocabulary.concepts]
+
+        [vocabulary.concepts.contexts]
+        physical_context = "physical context"
+        social_context = "social context"
+        economic_context = "economic context"
+        political_context = "political context"
+        legal_context = "legal context"
+        administrative_context = "administrative context"
+
+        [vocabulary.concepts.agents]
+        physical_forces = "physical forces"
+        vandalism = "vandalism"
+        fire = "fire"
+        water = "water"
+        pests = "pests"
+        pollutants = "pollutants"
+        light = "light"
+        temperature = "temperature"
+        humidity = "humidity"
+        dissociation = "dissociation"
+
+        [vocabulary.concepts.measures]
+        a_score = "A-Score"
+        b_score = "B-Score"
+        c_score = "C-Score"
+        mr_score = "Magnitude of risk"
+
+    #frequencies = {
+    #    "Rare": "XXX",
+    #    "Common": "XXX", 
+    #    "Cumulative": "XXX"
+    #}
+    #layers = {
+    #    "Region": "XXX",
+    #    "Site": "XXX",
+    #    "Building": "XXX"
+    #}
+    #stages = {
+    #    "Avoid": "XXX",
+    #    "Block": "XXX",
+    #    "Detect": "XXX",
+    #    "Respond": "XXX",
+    #    "Treat": "XXX"
+    #}
+
+#
+# GEOGRAPHIC DATA
+[geo]
+
+    [geo.1]
+    name = "Hydrogeo"
+    color = "blue"
+    path = "data/16_21_poligoni_class2_E32/16_21_poligoni_class2_E32.shp"
+    risks = [
+        "risk.1"
+    ]
+
+    [geo.2]
+    name = "Subsidence"
+    color = "brown"
+    path = "data/sub2011-2016/sub_2011-2016.shp"
+    risks = [
+        "risk.2"
+    ]
+
+
+#
+# RISKS
+[risk]
+api_service = "http://framelab.unibo.it/omeka/api"
+vocabulary = "https://www.wikidata.org/wiki/"
+probable_type = "Q226995"                   # prendi valore di tipo https://www.wikidata.org/wiki/Q226995
+magnitude_observation_type = "Q2154759"     # riferito da observation di tipo https://www.wikidata.org/wiki/Q2154759
+analysis_type = "Q217602"                   # assegnate da attività di tipo https://www.wikidata.org/wiki/Q217602
+                                            # che assegnano a oggetto con quell'ID (punto di contatto)
+
+
+risks = [
+    "Earthquake",
+    "Flood",
+    ]
+
+    [risk.1]
+    name = "Earthquake"
+    heading = "risk1"                                       # punto di contatto tra geo e dati rischio
+    #fill_color = "brown"
+    #api_service = "https://dati.arpae.it/it/api/3/action/package_show?id="
+    #id = "arpa_acq_sott_basea2"
+
+    [risk.2]
+    name = "Flood"
+    heading = "risk2"                                       # punto di contatto tra geo e dati rischio
+    #fill_color = "blue"
+    #api_service = "https://datacatalog.regione.emilia-romagna.it/catalogCTA/api/3/action/package_show?id="
+    #id = "carta-della-subsidenza-2011-2016"
+

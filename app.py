@@ -1,9 +1,13 @@
 from shiny import App
-from ui import app_ui
-from server import server
+from src.controller import AppController
 
-# Create app
-app = App(app_ui, server)
+
+def create_app():
+    controller = AppController()
+    app = App(ui=controller.ui, server=controller.server)
+    return app
+
+app = create_app()
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True, port=8000)

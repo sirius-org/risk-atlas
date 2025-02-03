@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+title: SIRIUS Risk Atlas
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Sebastian
+    family-names: Barzaghi
+    email: sebastian.barzaghi2@unibo.it
+    affiliation: University of Bologna
+    orcid: 'https://orcid.org/0000-0002-0799-1527'
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.13857448
+repository-code: 'https://github.com/sirius-org/risk-atlas/tree/v0.1.0'
+keywords:
+  - digital humanities
+  - risk assessment
+  - cultural heritage
+  - gis
+license: MIT
+version: 0.1.0
